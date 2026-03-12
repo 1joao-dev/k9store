@@ -68,6 +68,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
   const { user, isAdmin, signOut, profile } = useAuth();
 
   useEffect(() => {
