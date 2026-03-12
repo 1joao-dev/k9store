@@ -52,6 +52,7 @@ type Product = {
   badge: string | null;
   sales: string | null;
   image_url: string | null;
+  description: string | null;
   plans?: Plan[];
 };
 
@@ -293,45 +294,95 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground/60 mt-1">Novos produtos serão adicionados em breve!</p>
               </motion.div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {products.map((product) => (
                   <motion.div
                     key={product.id}
                     variants={fadeUp}
                     onClick={() => setSelectedProduct(product)}
-                    className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+                    className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative"
                   >
-                    {/* Thumbnail */}
-                    {product.image_url ? (
-                      <div className="w-full h-40 bg-secondary overflow-hidden">
-                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    ) : (
-                      <div className="w-full h-40 bg-secondary/50 flex items-center justify-center">
-                        <Image className="h-8 w-8 text-muted-foreground/20" />
+                    {/* Badge */}
+                    {product.badge && (
+                      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-primary/90 text-primary-foreground text-[10px] font-semibold flex items-center gap-1 backdrop-blur-sm">
+                        <Star className="h-2.5 w-2.5 fill-current" />
+                        {product.badge}
                       </div>
                     )}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-sm">{product.name}</h3>
-                        {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
+
+                    {/* Thumbnail */}
+                    <div className="relative w-full h-48 bg-secondary overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                          <Image className="h-10 w-10 text-muted-foreground/15" />
+                        </div>
+                      )}
+                      {/* Tags overlay on image */}
+                      <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                         {product.tags.map(tag => (
-                          <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                          <span key={tag} className="text-[8px] tracking-wider px-2 py-0.5 rounded bg-background/70 backdrop-blur-sm text-foreground/80 uppercase font-medium">{tag}</span>
                         ))}
-                        {product.badge && (
-                          <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
-                        )}
                       </div>
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-lg font-bold text-primary">
-                          {product.plans && product.plans.length > 0
-                            ? `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
-                            : `R$${product.price.toFixed(2).replace('.', ',')}`
-                          }
-                        </p>
-                        <span className="text-[10px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">Ver detalhes →</span>
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold text-sm leading-tight line-clamp-2">{product.name}</h3>
+                      
+                      {/* Variants count */}
+                      {product.plans && product.plans.length > 0 && (
+                        <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          {product.plans.length} variante{product.plans.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+
+                      {/* Price */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div>
+                          <p className="text-lg font-black text-foreground">
+                            R$ {product.plans && product.plans.length > 0
+                              ? Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')
+                              : product.price.toFixed(2).replace('.', ',')
+                            }
+                          </p>
+                          {product.plans && product.plans.length > 0 && (
+                            <p className="text-[10px] text-muted-foreground -mt-0.5">A partir de</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-primary font-medium flex items-center gap-0.5">● Disponíveis</span>
+                      </div>
+
+                      {/* Sales */}
+                      {product.sales && (
+                        <div className="flex items-center gap-1 text-[10px] text-primary/70">
+                          <Users className="h-3 w-3" />
+                          <span>+{product.sales}</span>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }}
+                          className="flex-1 py-2 rounded-xl border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all inline-flex items-center justify-center gap-1.5"
+                        >
+                          Detalhes
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (product.plans && product.plans.length > 0) {
+                              setSelectedProduct(product);
+                            } else {
+                              addToCart(product, null);
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all inline-flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingCart className="h-3 w-3" />
+                          ADICIONAR
+                        </button>
                       </div>
                     </div>
                   </motion.div>
@@ -543,97 +594,131 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedProduct(null)}
+            className="fixed inset-0 bg-background z-50 overflow-y-auto"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-card border border-border rounded-2xl w-full max-w-lg overflow-hidden"
-            >
-              {/* Image */}
-              {selectedProduct.image_url ? (
-                <div className="w-full h-56 bg-secondary overflow-hidden">
-                  <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="w-full h-56 bg-secondary/50 flex items-center justify-center">
-                  <Image className="h-12 w-12 text-muted-foreground/20" />
-                </div>
-              )}
+            <div className="max-w-5xl mx-auto px-5 py-8">
+              {/* Back button */}
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all mb-8"
+              >
+                <ArrowRight className="h-3 w-3 rotate-180" />
+                Voltar para loja
+              </button>
 
-              <div className="p-6 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {selectedProduct.tags.map(tag => (
-                        <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
-                      ))}
-                      {selectedProduct.badge && (
-                        <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{selectedProduct.badge}</span>
+              <div className="grid md:grid-cols-[1fr_400px] gap-10">
+                {/* Left: Info */}
+                <div className="space-y-6">
+                  {/* Category tags */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProduct.tags.map(tag => (
+                      <span key={tag} className="text-[10px] tracking-[0.15em] px-2 py-0.5 rounded bg-secondary text-muted-foreground uppercase font-medium">{tag}</span>
+                    ))}
+                  </div>
+
+                  {/* Title */}
+                  <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">{selectedProduct.name}</h1>
+
+                  {/* Description */}
+                  {selectedProduct.description && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                        <Zap className="h-3.5 w-3.5" />
+                        {selectedProduct.name}
+                      </p>
+                      <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                        {selectedProduct.description}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Variants */}
+                  {selectedProduct.plans && selectedProduct.plans.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] tracking-[0.15em] uppercase font-semibold text-muted-foreground">Variantes</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedProduct.plans.map(plan => {
+                          const isSelected = selectedPlans[selectedProduct.id] === plan.id;
+                          return (
+                            <button
+                              key={plan.id}
+                              onClick={() => setSelectedPlans(prev => ({ ...prev, [selectedProduct.id]: plan.id }))}
+                              className={`px-4 py-3 rounded-xl border transition-all text-left min-w-[110px] ${
+                                isSelected
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border bg-card hover:border-primary/20"
+                              }`}
+                            >
+                              <p className={`text-sm font-bold ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>{plan.name}</p>
+                              <p className={`text-xs mt-0.5 ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
+                                R$ {plan.price.toFixed(2).replace('.', ',')}
+                              </p>
+                              <p className="text-[10px] text-primary mt-1">Disponíveis</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Price & CTA */}
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <p className="text-3xl font-black">
+                        R$ {selectedProduct.plans && selectedProduct.plans.length > 0 && selectedPlans[selectedProduct.id]
+                          ? selectedProduct.plans.find(p => p.id === selectedPlans[selectedProduct.id])!.price.toFixed(2).replace('.', ',')
+                          : selectedProduct.plans && selectedProduct.plans.length > 0
+                            ? Math.min(...selectedProduct.plans.map(p => p.price)).toFixed(2).replace('.', ',')
+                            : selectedProduct.price.toFixed(2).replace('.', ',')
+                        }
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        disabled={selectedProduct.plans && selectedProduct.plans.length > 0 && !selectedPlans[selectedProduct.id]}
+                        onClick={() => addToCart(selectedProduct, selectedPlans[selectedProduct.id] || null)}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-30"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Comprar agora
+                      </button>
+                    </div>
+
+                    {/* Info badges */}
+                    <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                      {selectedProduct.plans && selectedProduct.plans.length > 0 && selectedPlans[selectedProduct.id] && (
+                        <span className="px-2.5 py-1 rounded-full bg-secondary/50 border border-border text-muted-foreground flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          {selectedProduct.plans.find(p => p.id === selectedPlans[selectedProduct.id])?.name}
+                        </span>
                       )}
+                      <span className="flex items-center gap-1 text-primary">● Disponíveis</span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Star className="h-3 w-3 fill-primary text-primary" />
+                        <Star className="h-3 w-3 fill-primary text-primary" />
+                        <Star className="h-3 w-3 fill-primary text-primary" />
+                        <Star className="h-3 w-3 fill-primary text-primary" />
+                        <Star className="h-3 w-3 fill-primary text-primary" />
+                        5.0
+                      </span>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedProduct(null)} className="p-1 text-muted-foreground hover:text-foreground">
-                    <X className="h-5 w-5" />
-                  </button>
                 </div>
 
-                {selectedProduct.sales && (
-                  <p className="text-xs text-muted-foreground">{selectedProduct.sales}</p>
-                )}
-
-                {/* Plans selection */}
-                {selectedProduct.plans && selectedProduct.plans.length > 0 ? (
-                  <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground">Selecione um plano:</p>
-                    <div className="grid gap-2">
-                      {selectedProduct.plans.map(plan => {
-                        const isSelected = selectedPlans[selectedProduct.id] === plan.id;
-                        return (
-                          <button
-                            key={plan.id}
-                            onClick={() => setSelectedPlans(prev => ({ ...prev, [selectedProduct.id]: plan.id }))}
-                            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                              isSelected
-                                ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
-                                : "border-border bg-secondary/30 hover:border-primary/20"
-                            }`}
-                          >
-                            <span className={`text-sm font-medium ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>{plan.name}</span>
-                            <span className={`text-sm font-bold ${isSelected ? "text-primary" : "text-muted-foreground"}`}>
-                              R${plan.price.toFixed(2).replace('.', ',')}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <button
-                      disabled={!selectedPlans[selectedProduct.id]}
-                      onClick={() => addToCart(selectedProduct, selectedPlans[selectedProduct.id])}
-                      className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-30 inline-flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Adicionar ao carrinho
-                    </button>
+                {/* Right: Image */}
+                <div className="hidden md:block">
+                  <div className="sticky top-24 rounded-2xl overflow-hidden border border-border bg-secondary">
+                    {selectedProduct.image_url ? (
+                      <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full aspect-[4/5] object-cover" />
+                    ) : (
+                      <div className="w-full aspect-[4/5] flex items-center justify-center">
+                        <Image className="h-16 w-16 text-muted-foreground/15" />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-2xl font-bold text-primary">R${selectedProduct.price.toFixed(2).replace('.', ',')}</p>
-                    <button
-                      onClick={() => addToCart(selectedProduct, null)}
-                      className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Adicionar ao carrinho
-                    </button>
-                  </div>
-                )}
+                </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

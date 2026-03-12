@@ -13,6 +13,7 @@ type Product = {
   badge: string | null;
   sales: string | null;
   image_url: string | null;
+  description: string | null;
 };
 
 type Giveaway = {
@@ -52,6 +53,7 @@ export default function Admin() {
   const [pTags, setPTags] = useState("");
   const [pBadge, setPBadge] = useState("");
   const [pSales, setPSales] = useState("");
+  const [pDescription, setPDescription] = useState("");
   const [pImageFile, setPImageFile] = useState<File | null>(null);
   const [pImagePreview, setPImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -99,10 +101,11 @@ export default function Admin() {
       setPTags(product.tags.join(", "));
       setPBadge(product.badge || "");
       setPSales(product.sales || "");
+      setPDescription(product.description || "");
       setPImagePreview(product.image_url || null);
     } else {
       setEditingProduct(null);
-      setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales("");
+      setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales(""); setPDescription("");
       setPImagePreview(null);
     }
     setPImageFile(null);
@@ -139,6 +142,7 @@ export default function Admin() {
       tags: pTags.split(",").map(t => t.trim().toUpperCase()).filter(Boolean),
       badge: pBadge.trim() || null,
       sales: pSales.trim() || null,
+      description: pDescription.trim() || null,
       image_url,
     };
     if (editingProduct) {
@@ -374,6 +378,10 @@ export default function Admin() {
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Vendas</label>
                     <input value={pSales} onChange={e => setPSales(e.target.value)} placeholder="Ex: 1.2k vendas" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+                    <textarea value={pDescription} onChange={e => setPDescription(e.target.value)} placeholder="Descreva o produto em detalhes..." rows={4} className={`${inputClass} resize-none`} />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Thumbnail</label>
