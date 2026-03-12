@@ -260,7 +260,7 @@ const Index = () => {
             <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
             <span className="text-sm font-semibold">K9 Store</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2025 Zeus Space. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2025 K9 Store. All rights reserved.</p>
         </div>
       </footer>
     </div>
