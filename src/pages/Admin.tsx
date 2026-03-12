@@ -421,8 +421,15 @@ export default function Admin() {
               <div className="space-y-2">
                 {products.map(p => (
                   <div key={p.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                          <Image className="h-4 w-4 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
                         <h3 className="text-sm font-semibold truncate">{p.name}</h3>
                         <span className="text-xs font-bold text-primary">R${p.price.toFixed(2).replace('.', ',')}</span>
                       </div>
