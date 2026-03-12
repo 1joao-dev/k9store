@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +51,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  image_url: string | null;
   plans?: Plan[];
 };
 
@@ -62,6 +63,15 @@ type Giveaway = {
   ends_in: string | null;
   hot: boolean;
   active: boolean;
+};
+
+type CartItem = {
+  productId: string;
+  productName: string;
+  planId: string | null;
+  planName: string | null;
+  price: number;
+  image_url: string | null;
 };
 
 const Index = () => {
