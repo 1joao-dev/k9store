@@ -86,6 +86,7 @@ export type Database = {
         Row: {
           badge: string | null
           created_at: string
+          description: string | null
           id: string
           image_url: string | null
           name: string
@@ -96,6 +97,7 @@ export type Database = {
         Insert: {
           badge?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url?: string | null
           name: string
@@ -106,6 +108,7 @@ export type Database = {
         Update: {
           badge?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url?: string | null
           name?: string
