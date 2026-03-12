@@ -22,7 +22,7 @@ const PRODUCTS = [
 ];
 
 const STATS = [
-  { value: "50k+", label: "Clientes atendidos" },
+  { value: "3k+", label: "Clientes atendidos" },
   { value: "99.2%", label: "Taxa de entrega" },
   { value: "<30s", label: "Tempo médio" },
   { value: "4.9★", label: "Avaliação média" },
