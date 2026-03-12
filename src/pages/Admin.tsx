@@ -382,6 +382,9 @@ export default function Admin() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      <button onClick={() => openPlansManager(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Gerenciar planos">
+                        <List className="h-3.5 w-3.5" />
+                      </button>
                       <button onClick={() => openProductForm(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
@@ -391,6 +394,70 @@ export default function Admin() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Plans Manager Modal */}
+            {managingPlansFor && (
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-bold">Planos — {managingPlansFor.name}</h2>
+                      <p className="text-[10px] text-muted-foreground">Ex: Diário, Semanal, Mensal, Lifetime</p>
+                    </div>
+                    <button onClick={() => setManagingPlansFor(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Existing plans */}
+                  {plans.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {plans.map(plan => (
+                        <div key={plan.id} className="flex items-center justify-between bg-secondary/50 rounded-lg px-3 py-2">
+                          <div>
+                            <span className="text-xs font-medium">{plan.name}</span>
+                            <span className="text-xs text-primary ml-2 font-bold">R${plan.price.toFixed(2).replace('.', ',')}</span>
+                          </div>
+                          <button onClick={() => deletePlan(plan.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/60 text-center py-3">Nenhum plano — será usado o preço padrão do produto</p>
+                  )}
+
+                  {/* Add new plan */}
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-[11px] font-medium text-muted-foreground">Adicionar plano</p>
+                    <div className="flex gap-2">
+                      <input
+                        value={newPlanName}
+                        onChange={e => setNewPlanName(e.target.value)}
+                        placeholder="Nome (ex: Mensal)"
+                        className={`${inputClass} flex-1`}
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={newPlanPrice}
+                        onChange={e => setNewPlanPrice(e.target.value)}
+                        placeholder="Preço"
+                        className={`${inputClass} w-24`}
+                      />
+                    </div>
+                    <button
+                      onClick={addPlan}
+                      disabled={!newPlanName.trim() || !newPlanPrice.trim()}
+                      className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" /> Adicionar plano
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
