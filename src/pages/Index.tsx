@@ -129,7 +129,7 @@ const Index = () => {
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Mais de 50.000 clientes atendidos
+              Mais de 3.000 clientes atendidos
             </motion.div>
 
             <motion.img variants={fadeUp} src={logo} alt="K9" className="h-24 w-24 rounded-3xl mx-auto mb-8 k9-glow" />
