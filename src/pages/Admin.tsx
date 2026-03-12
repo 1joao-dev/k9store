@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
@@ -12,6 +12,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  image_url: string | null;
 };
 
 type Giveaway = {
@@ -51,6 +52,9 @@ export default function Admin() {
   const [pTags, setPTags] = useState("");
   const [pBadge, setPBadge] = useState("");
   const [pSales, setPSales] = useState("");
+  const [pImageFile, setPImageFile] = useState<File | null>(null);
+  const [pImagePreview, setPImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Plans management
   const [managingPlansFor, setManagingPlansFor] = useState<Product | null>(null);
@@ -95,27 +99,54 @@ export default function Admin() {
       setPTags(product.tags.join(", "));
       setPBadge(product.badge || "");
       setPSales(product.sales || "");
+      setPImagePreview(product.image_url || null);
     } else {
       setEditingProduct(null);
       setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales("");
+      setPImagePreview(null);
     }
+    setPImageFile(null);
     setShowProductForm(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPImageFile(file);
+    setPImagePreview(URL.createObjectURL(file));
   };
 
   const saveProduct = async () => {
     if (!pName.trim() || !pPrice.trim()) return;
+    setUploading(true);
+
+    let image_url: string | null = editingProduct?.image_url || null;
+
+    // Upload image if new file selected
+    if (pImageFile) {
+      const ext = pImageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error } = await supabase.storage.from('product-images').upload(fileName, pImageFile);
+      if (!error) {
+        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+      }
+    }
+
     const data = {
       name: pName.trim(),
       price: parseFloat(pPrice),
       tags: pTags.split(",").map(t => t.trim().toUpperCase()).filter(Boolean),
       badge: pBadge.trim() || null,
       sales: pSales.trim() || null,
+      image_url,
     };
     if (editingProduct) {
       await supabase.from("products").update(data).eq("id", editingProduct.id);
     } else {
       await supabase.from("products").insert(data);
     }
+    setUploading(false);
     setShowProductForm(false);
     fetchAll();
   };
@@ -344,13 +375,34 @@ export default function Admin() {
                     <label className="text-xs text-muted-foreground mb-1 block">Vendas</label>
                     <input value={pSales} onChange={e => setPSales(e.target.value)} placeholder="Ex: 1.2k vendas" className={inputClass} />
                   </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Thumbnail</label>
+                    {pImagePreview ? (
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden bg-secondary mb-2">
+                        <img src={pImagePreview} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => { setPImageFile(null); setPImagePreview(null); }}
+                          className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 w-full h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/30 cursor-pointer transition-colors bg-secondary/30">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Clique para enviar imagem</span>
+                        <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                      </label>
+                    )}
+                  </div>
                   <button
                     onClick={saveProduct}
-                    disabled={!pName.trim() || !pPrice.trim()}
+                    disabled={!pName.trim() || !pPrice.trim() || uploading}
                     className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
                   >
                     <Save className="h-3.5 w-3.5" />
-                    {editingProduct ? "Salvar alterações" : "Adicionar produto"}
+                    {uploading ? "Enviando..." : editingProduct ? "Salvar alterações" : "Adicionar produto"}
                   </button>
                 </div>
               </div>
@@ -369,16 +421,25 @@ export default function Admin() {
               <div className="space-y-2">
                 {products.map(p => (
                   <div key={p.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold truncate">{p.name}</h3>
-                        <span className="text-xs font-bold text-primary">R${p.price.toFixed(2).replace('.', ',')}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {p.tags.map(t => (
-                          <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{t}</span>
-                        ))}
-                        {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{p.badge}</span>}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                          <Image className="h-4 w-4 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold truncate">{p.name}</h3>
+                          <span className="text-xs font-bold text-primary">R${p.price.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {p.tags.map(t => (
+                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{t}</span>
+                          ))}
+                          {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{p.badge}</span>}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">

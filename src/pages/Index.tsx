@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +51,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  image_url: string | null;
   plans?: Plan[];
 };
 
@@ -64,12 +65,44 @@ type Giveaway = {
   active: boolean;
 };
 
+type CartItem = {
+  productId: string;
+  productName: string;
+  planId: string | null;
+  planName: string | null;
+  price: number;
+  image_url: string | null;
+};
+
 const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
   const { user, isAdmin, signOut, profile } = useAuth();
+
+  const addToCart = (product: Product, planId: string | null) => {
+    const plan = planId ? product.plans?.find(p => p.id === planId) : null;
+    const price = plan ? plan.price : product.price;
+    setCart(prev => [...prev, {
+      productId: product.id,
+      productName: product.name,
+      planId,
+      planName: plan?.name || null,
+      price,
+      image_url: product.image_url,
+    }]);
+    setSelectedProduct(null);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -135,8 +168,13 @@ const Index = () => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => setShowCart(true)} className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
               <ShoppingCart className="h-4 w-4" />
+              {cart.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
             </button>
             {user ? (
               <div className="flex items-center gap-2">
@@ -260,68 +298,42 @@ const Index = () => {
                   <motion.div
                     key={product.id}
                     variants={fadeUp}
-                    className="group bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+                    onClick={() => setSelectedProduct(product)}
+                    className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Gamepad2 className="h-5 w-5 text-primary" />
-                      </div>
-                      {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
-                    </div>
-                    <h3 className="font-semibold text-sm">{product.name}</h3>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {product.tags.map(tag => (
-                        <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
-                      ))}
-                      {product.badge && (
-                        <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
-                      )}
-                    </div>
-                    {/* Plans */}
-                    {product.plans && product.plans.length > 0 ? (
-                      <div className="mt-3 space-y-1.5">
-                        <p className="text-[10px] text-muted-foreground font-medium">Escolha o plano:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {product.plans.map(plan => {
-                            const isSelected = selectedPlans[product.id] === plan.id;
-                            return (
-                              <button
-                                key={plan.id}
-                                onClick={() => setSelectedPlans(prev => ({ ...prev, [product.id]: plan.id }))}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                                  isSelected
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-primary/20"
-                                }`}
-                              >
-                                {plan.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-lg font-bold text-primary">
-                            {selectedPlans[product.id]
-                              ? `R$${product.plans.find(p => p.id === selectedPlans[product.id])!.price.toFixed(2).replace('.', ',')}`
-                              : `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
-                            }
-                          </p>
-                          <button
-                            disabled={!selectedPlans[product.id]}
-                            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all disabled:opacity-30"
-                          >
-                            Comprar
-                          </button>
-                        </div>
+                    {/* Thumbnail */}
+                    {product.image_url ? (
+                      <div className="w-full h-40 bg-secondary overflow-hidden">
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     ) : (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-lg font-bold text-primary">R${product.price.toFixed(2).replace('.', ',')}</p>
-                        <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
-                          Comprar
-                        </button>
+                      <div className="w-full h-40 bg-secondary/50 flex items-center justify-center">
+                        <Image className="h-8 w-8 text-muted-foreground/20" />
                       </div>
                     )}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-semibold text-sm">{product.name}</h3>
+                        {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {product.tags.map(tag => (
+                          <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                        ))}
+                        {product.badge && (
+                          <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-lg font-bold text-primary">
+                          {product.plans && product.plans.length > 0
+                            ? `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
+                            : `R$${product.price.toFixed(2).replace('.', ',')}`
+                          }
+                        </p>
+                        <span className="text-[10px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">Ver detalhes →</span>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -523,6 +535,178 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Product Detail Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedProduct(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-card border border-border rounded-2xl w-full max-w-lg overflow-hidden"
+            >
+              {/* Image */}
+              {selectedProduct.image_url ? (
+                <div className="w-full h-56 bg-secondary overflow-hidden">
+                  <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-full h-56 bg-secondary/50 flex items-center justify-center">
+                  <Image className="h-12 w-12 text-muted-foreground/20" />
+                </div>
+              )}
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {selectedProduct.tags.map(tag => (
+                        <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                      ))}
+                      {selectedProduct.badge && (
+                        <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{selectedProduct.badge}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedProduct(null)} className="p-1 text-muted-foreground hover:text-foreground">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {selectedProduct.sales && (
+                  <p className="text-xs text-muted-foreground">{selectedProduct.sales}</p>
+                )}
+
+                {/* Plans selection */}
+                {selectedProduct.plans && selectedProduct.plans.length > 0 ? (
+                  <div className="space-y-3">
+                    <p className="text-xs font-medium text-muted-foreground">Selecione um plano:</p>
+                    <div className="grid gap-2">
+                      {selectedProduct.plans.map(plan => {
+                        const isSelected = selectedPlans[selectedProduct.id] === plan.id;
+                        return (
+                          <button
+                            key={plan.id}
+                            onClick={() => setSelectedPlans(prev => ({ ...prev, [selectedProduct.id]: plan.id }))}
+                            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
+                                : "border-border bg-secondary/30 hover:border-primary/20"
+                            }`}
+                          >
+                            <span className={`text-sm font-medium ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>{plan.name}</span>
+                            <span className={`text-sm font-bold ${isSelected ? "text-primary" : "text-muted-foreground"}`}>
+                              R${plan.price.toFixed(2).replace('.', ',')}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      disabled={!selectedPlans[selectedProduct.id]}
+                      onClick={() => addToCart(selectedProduct, selectedPlans[selectedProduct.id])}
+                      className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-30 inline-flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Adicionar ao carrinho
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-2xl font-bold text-primary">R${selectedProduct.price.toFixed(2).replace('.', ',')}</p>
+                    <button
+                      onClick={() => addToCart(selectedProduct, null)}
+                      className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all inline-flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Adicionar ao carrinho
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cart Drawer */}
+      <AnimatePresence>
+        {showCart && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50"
+            onClick={() => setShowCart(false)}
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              onClick={e => e.stopPropagation()}
+              className="absolute right-0 top-0 h-full w-full max-w-sm bg-card border-l border-border flex flex-col"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-border">
+                <h2 className="font-bold text-sm">Carrinho ({cart.length})</h2>
+                <button onClick={() => setShowCart(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                {cart.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShoppingCart className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">Carrinho vazio</p>
+                  </div>
+                ) : (
+                  cart.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-secondary/30 border border-border rounded-xl p-3">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold truncate">{item.productName}</p>
+                        {item.planName && <p className="text-[10px] text-muted-foreground">{item.planName}</p>}
+                        <p className="text-xs font-bold text-primary mt-0.5">R${item.price.toFixed(2).replace('.', ',')}</p>
+                      </div>
+                      <button onClick={() => removeFromCart(i)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {cart.length > 0 && (
+                <div className="p-5 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Total</span>
+                    <span className="text-lg font-bold text-primary">R${cartTotal.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                  <button className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">
+                    Finalizar compra
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="border-t border-border py-8">
