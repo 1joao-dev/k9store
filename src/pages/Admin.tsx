@@ -380,6 +380,10 @@ export default function Admin() {
                     <input value={pSales} onChange={e => setPSales(e.target.value)} placeholder="Ex: 1.2k vendas" className={inputClass} />
                   </div>
                   <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+                    <textarea value={pDescription} onChange={e => setPDescription(e.target.value)} placeholder="Descreva o produto em detalhes..." rows={4} className={`${inputClass} resize-none`} />
+                  </div>
+                  <div>
                     <label className="text-xs text-muted-foreground mb-1 block">Thumbnail</label>
                     {pImagePreview ? (
                       <div className="relative w-full h-32 rounded-lg overflow-hidden bg-secondary mb-2">
