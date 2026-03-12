@@ -430,15 +430,16 @@ export default function Admin() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="text-sm font-semibold truncate">{p.name}</h3>
-                        <span className="text-xs font-bold text-primary">R${p.price.toFixed(2).replace('.', ',')}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {p.tags.map(t => (
-                          <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{t}</span>
-                        ))}
-                        {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{p.badge}</span>}
-                      </div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold truncate">{p.name}</h3>
+                          <span className="text-xs font-bold text-primary">R${p.price.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {p.tags.map(t => (
+                            <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{t}</span>
+                          ))}
+                          {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{p.badge}</span>}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
