@@ -52,6 +52,9 @@ export default function Admin() {
   const [pTags, setPTags] = useState("");
   const [pBadge, setPBadge] = useState("");
   const [pSales, setPSales] = useState("");
+  const [pImageFile, setPImageFile] = useState<File | null>(null);
+  const [pImagePreview, setPImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Plans management
   const [managingPlansFor, setManagingPlansFor] = useState<Product | null>(null);
