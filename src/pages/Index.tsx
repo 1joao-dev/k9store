@@ -119,9 +119,9 @@ const Index = () => {
             <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
               <ShoppingCart className="h-4 w-4" />
             </button>
-            <button className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
+            <Link to="/login" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
               Entrar
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
