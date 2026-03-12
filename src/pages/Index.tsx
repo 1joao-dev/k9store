@@ -60,7 +60,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, signOut, profile } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,16 +122,25 @@ const Index = () => {
               <ShoppingCart className="h-4 w-4" />
             </button>
             {user ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {isAdmin && (
                   <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Painel Admin">
                     <Settings className="h-4 w-4" />
                   </Link>
                 )}
-                <span className="text-[10px] text-muted-foreground hidden sm:inline">{user.user_metadata?.username || user.email?.split("@")[0]}</span>
-                <button onClick={signOut} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
-                  <LogOut className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-secondary/50 border border-border">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary">
+                      {(profile?.username || user.email)?.[0]?.toUpperCase() || "?"}
+                    </div>
+                  )}
+                  <span className="text-[11px] font-medium hidden sm:inline">{profile?.username || user.email?.split("@")[0]}</span>
+                  <button onClick={signOut} className="p-0.5 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             ) : (
               <Link to="/login" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
