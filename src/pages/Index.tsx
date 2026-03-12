@@ -88,11 +88,19 @@ const Index = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [prodRes, giveRes] = await Promise.all([
+      const [prodRes, giveRes, plansRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
+        supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
       ]);
-      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (prodRes.data && plansRes.data) {
+        const plans = plansRes.data as Plan[];
+        const prods = (prodRes.data as Product[]).map(p => ({
+          ...p,
+          plans: plans.filter(pl => pl.product_id === p.id),
+        }));
+        setProducts(prods);
+      }
       if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
     };
     fetchData();
