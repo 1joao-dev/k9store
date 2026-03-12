@@ -37,6 +37,13 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
+type Plan = {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -44,6 +51,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  plans?: Plan[];
 };
 
 type Giveaway = {
