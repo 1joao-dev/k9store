@@ -1,8 +1,14 @@
-import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, TrendingUp, Award, ShoppingCart, Globe } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, TrendingUp, Award, ShoppingCart, Globe, Gift, Wrench } from "lucide-react";
 // K9 branding logo
 import logo from "@/assets/k9-logo.png";
 
-const NAV_ITEMS = ["Home", "Store", "Giveaways", "Tools"];
+const SECTIONS = [
+  { id: "home", label: "Home" },
+  { id: "store", label: "Store" },
+  { id: "giveaways", label: "Giveaways" },
+  { id: "tools", label: "Tools" },
+];
 
 const FEATURES = [
   { icon: ShieldCheck, title: "Protected checkout", desc: "A secure purchase and delivery flow built for consistency from payment to private inventory." },
@@ -27,24 +33,67 @@ const COUNTRIES = [
   "Espanha", "DOM", "Mexico"
 ];
 
+const GIVEAWAYS = [
+  { title: "Steam Account Giveaway", entries: 342, endsIn: "2 dias", prize: "Steam Full Access" },
+  { title: "RedEngine Lifetime", entries: 128, endsIn: "5 dias", prize: "Spoofer Lifetime Key" },
+  { title: "Hytale Cursebreaker", entries: 567, endsIn: "1 dia", prize: "Hytale Cursebreaker Account" },
+];
+
+const TOOLS_LIST = [
+  { name: "HWID Checker", desc: "Verifique seu hardware ID rapidamente para saber se está banido.", icon: Wrench },
+  { name: "Steam Account Checker", desc: "Valide informações e jogos de contas Steam em segundos.", icon: ShieldCheck },
+  { name: "IP Lookup", desc: "Consulte informações geográficas e ISP de qualquer endereço IP.", icon: Globe },
+];
+
 const Index = () => {
+  const [activeSection, setActiveSection] = useState("home");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = SECTIONS.map(s => ({
+        id: s.id,
+        el: document.getElementById(s.id),
+      }));
+      const scrollY = window.scrollY + 100;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const el = sections[i].el;
+        if (el && el.offsetTop <= scrollY) {
+          setActiveSection(sections[i].id);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <img src={logo} alt="K9" className="h-8 w-8 rounded-lg" />
+          <img src={logo} alt="K9" className="h-8 w-8 rounded-lg cursor-pointer" onClick={() => scrollTo("home")} />
           <div className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item, i) => (
+            {SECTIONS.map((section) => (
               <button
-                key={item}
+                key={section.id}
+                onClick={() => scrollTo(section.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  i === 0
+                  activeSection === section.id
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {item}
+                {section.label}
               </button>
             ))}
           </div>
@@ -63,8 +112,8 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center pt-16">
+      {/* Home / Hero */}
+      <section id="home" className="relative min-h-screen flex items-center pt-16">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)",
@@ -82,7 +131,10 @@ const Index = () => {
               <span className="text-primary font-medium">A premium operation scaled for a global audience</span>{" "}
               with curated digital products, automated delivery and constant catalog evolution driven by real demand.
             </p>
-            <button className="mt-8 inline-flex items-center gap-2 px-8 py-4 rounded-full border border-border text-sm font-medium hover:bg-secondary transition-all group">
+            <button
+              onClick={() => scrollTo("store")}
+              className="mt-8 inline-flex items-center gap-2 px-8 py-4 rounded-full border border-border text-sm font-medium hover:bg-secondary transition-all group"
+            >
               Browse catalog
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -99,14 +151,14 @@ const Index = () => {
             </div>
           </div>
         </div>
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground">
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground cursor-pointer" onClick={() => scrollTo("store")}>
           <span className="text-xs tracking-[0.3em] uppercase">Scroll to see more</span>
           <div className="w-px h-8 bg-border" />
         </div>
       </section>
 
-      {/* Products Section */}
-      <section className="py-24 relative">
+      {/* Store */}
+      <section id="store" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center">
             Engineered for<br />
@@ -194,6 +246,38 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Giveaways */}
+      <section id="giveaways" className="py-24 border-t border-border">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            Active<br />
+            <span className="text-primary">Giveaways</span>
+          </h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
+            Participe dos sorteios ativos e ganhe produtos digitais premium gratuitamente.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {GIVEAWAYS.map((giveaway, i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all">
+                <div className="flex items-center gap-2 mb-4">
+                  <Gift className="h-5 w-5 text-primary" />
+                  <span className="text-xs text-primary font-medium uppercase tracking-wider">Giveaway</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{giveaway.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">Prêmio: {giveaway.prize}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                  <span>{giveaway.entries} participantes</span>
+                  <span>Encerra em {giveaway.endsIn}</span>
+                </div>
+                <button className="w-full py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
+                  Participar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Reviews */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
@@ -227,6 +311,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Tools */}
+      <section id="tools" className="py-24 border-t border-border">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+            Free<br />
+            <span className="text-primary">Tools</span>
+          </h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
+            Ferramentas gratuitas para ajudar no seu dia a dia.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {TOOLS_LIST.map((tool, i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/20 transition-colors">
+                <tool.icon className="h-6 w-6 text-primary mb-4" />
+                <h3 className="text-base font-semibold mb-2">{tool.name}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{tool.desc}</p>
+                <button className="mt-4 px-4 py-2 rounded-full border border-border text-xs font-medium hover:bg-secondary transition-colors">
+                  Usar ferramenta
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Global Section */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
@@ -245,7 +354,10 @@ const Index = () => {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <button className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity group">
+            <button
+              onClick={() => scrollTo("store")}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity group"
+            >
               Browse all products
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
