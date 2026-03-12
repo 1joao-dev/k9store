@@ -32,7 +32,7 @@ const Index = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <img src={zeusLogo} alt="Zeus Space" className="h-8 w-8 rounded-lg" />
+          <img src={logo} alt="K9" className="h-8 w-8 rounded-lg" />
           <div className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item, i) => (
               <button
