@@ -74,7 +74,7 @@ const Index = () => {
           <div>
             <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
-              Zeus Space{" "}
+              K9 Store{" "}
               <br />
               <span className="text-primary">built for serious buyers.</span>
             </h1>
