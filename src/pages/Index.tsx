@@ -168,8 +168,13 @@ const Index = () => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => setShowCart(true)} className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
               <ShoppingCart className="h-4 w-4" />
+              {cart.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
             </button>
             {user ? (
               <div className="flex items-center gap-2">
