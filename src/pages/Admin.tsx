@@ -439,6 +439,7 @@ export default function Admin() {
                         ))}
                         {p.badge && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{p.badge}</span>}
                       </div>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <button onClick={() => openPlansManager(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Gerenciar planos">
