@@ -202,7 +202,7 @@ const Index = () => {
             <span className="text-primary">See what customers say.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            Feedback from real customers who buy through Zeus Space and return for reliability, speed and execution.
+            Feedback from real customers who buy through K9 Store and return for reliability, speed and execution.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {REVIEWS.map((review, i) => (
