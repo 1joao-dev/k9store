@@ -204,6 +204,9 @@ export default function Admin() {
               <Gift className="h-3 w-3" /> Sorteios
             </button>
           </div>
+          <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </nav>
 
