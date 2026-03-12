@@ -536,12 +536,12 @@ const Index = () => {
                 <Ticket className="h-3 w-3" /> Suporte
               </div>
               <h2 className="text-2xl md:text-3xl font-bold">
-                Abrir um <span className="text-primary">Ticket</span>
+                Central de <span className="text-primary">Suporte</span>
               </h2>
-              <p className="text-sm text-muted-foreground mt-2">Precisa de ajuda? Envie seu problema</p>
+              <p className="text-sm text-muted-foreground mt-2">Abra um ticket ou acompanhe seus chamados</p>
             </motion.div>
-            <motion.div variants={fadeUp} className="max-w-lg mx-auto">
-              <TicketForm />
+            <motion.div variants={fadeUp} className="max-w-2xl mx-auto">
+              <TicketSection />
             </motion.div>
           </motion.div>
         </div>
