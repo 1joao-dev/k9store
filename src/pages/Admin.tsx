@@ -61,14 +61,20 @@ export default function Admin() {
   const [gEndsIn, setGEndsIn] = useState("");
   const [gHot, setGHot] = useState(false);
 
+  // Ticket response
+  const [respondingTicket, setRespondingTicket] = useState<TicketItem | null>(null);
+  const [ticketResponse, setTicketResponse] = useState("");
+
   const fetchAll = async () => {
     setLoading(true);
-    const [p, g] = await Promise.all([
+    const [p, g, t] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("giveaways").select("*").order("created_at", { ascending: false }),
+      supabase.from("tickets").select("*").order("created_at", { ascending: false }),
     ]);
     if (p.data) setProducts(p.data as Product[]);
     if (g.data) setGiveaways(g.data as Giveaway[]);
+    if (t.data) setTickets(t.data as TicketItem[]);
     setLoading(false);
   };
 
