@@ -99,27 +99,54 @@ export default function Admin() {
       setPTags(product.tags.join(", "));
       setPBadge(product.badge || "");
       setPSales(product.sales || "");
+      setPImagePreview(product.image_url || null);
     } else {
       setEditingProduct(null);
       setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales("");
+      setPImagePreview(null);
     }
+    setPImageFile(null);
     setShowProductForm(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPImageFile(file);
+    setPImagePreview(URL.createObjectURL(file));
   };
 
   const saveProduct = async () => {
     if (!pName.trim() || !pPrice.trim()) return;
+    setUploading(true);
+
+    let image_url: string | null = editingProduct?.image_url || null;
+
+    // Upload image if new file selected
+    if (pImageFile) {
+      const ext = pImageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error } = await supabase.storage.from('product-images').upload(fileName, pImageFile);
+      if (!error) {
+        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+      }
+    }
+
     const data = {
       name: pName.trim(),
       price: parseFloat(pPrice),
       tags: pTags.split(",").map(t => t.trim().toUpperCase()).filter(Boolean),
       badge: pBadge.trim() || null,
       sales: pSales.trim() || null,
+      image_url,
     };
     if (editingProduct) {
       await supabase.from("products").update(data).eq("id", editingProduct.id);
     } else {
       await supabase.from("products").insert(data);
     }
+    setUploading(false);
     setShowProductForm(false);
     fetchAll();
   };
