@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      giveaways: {
+        Row: {
+          active: boolean
+          created_at: string
+          ends_in: string | null
+          entries: number
+          hot: boolean
+          id: string
+          prize: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ends_in?: string | null
+          entries?: number
+          hot?: boolean
+          id?: string
+          prize: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ends_in?: string | null
+          entries?: number
+          hot?: boolean
+          id?: string
+          prize?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          badge: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          sales: string | null
+          tags: string[]
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          price?: number
+          sales?: string | null
+          tags?: string[]
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          sales?: string | null
+          tags?: string[]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
