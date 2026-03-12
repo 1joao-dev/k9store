@@ -1,5 +1,5 @@
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, TrendingUp, Award, ShoppingCart, Globe } from "lucide-react";
-import zeusLogo from "@/assets/zeus-logo.png";
+import logo from "@/assets/k9-logo.png";
 
 const NAV_ITEMS = ["Home", "Store", "Giveaways", "Tools"];
 
@@ -32,7 +32,7 @@ const Index = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <img src={zeusLogo} alt="Zeus Space" className="h-8 w-8 rounded-lg" />
+          <img src={logo} alt="K9" className="h-8 w-8 rounded-lg" />
           <div className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item, i) => (
               <button
@@ -71,7 +71,7 @@ const Index = () => {
         }} />
         <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
           <div>
-            <img src={zeusLogo} alt="Zeus Space" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
+            <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
               Zeus Space{" "}
               <br />
@@ -256,7 +256,7 @@ const Index = () => {
       <footer className="border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={zeusLogo} alt="Zeus Space" className="h-6 w-6 rounded-md" />
+            <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
             <span className="text-sm font-semibold">Zeus Space</span>
           </div>
           <p className="text-xs text-muted-foreground">© 2025 Zeus Space. All rights reserved.</p>
