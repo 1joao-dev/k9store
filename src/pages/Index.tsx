@@ -121,7 +121,7 @@ const Index = () => {
         }} />
         <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
           <div>
-            <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
+            <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 k9-glow" />
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
               K9 Store{" "}
               <br />
