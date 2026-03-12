@@ -235,7 +235,7 @@ const Index = () => {
             <span className="text-primary">global market.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Zeus Space serves customers across regions with multilingual support, automated delivery and a catalog designed around live demand.
+            K9 Store serves customers across regions with multilingual support, automated delivery and a catalog designed around live demand.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {COUNTRIES.map(c => (
