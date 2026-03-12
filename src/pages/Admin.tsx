@@ -24,6 +24,17 @@ type Giveaway = {
   active: boolean;
 };
 
+type TicketItem = {
+  id: string;
+  email: string;
+  category: string;
+  subject: string;
+  description: string;
+  status: string;
+  admin_response: string | null;
+  created_at: string;
+};
+
 export default function Admin() {
   const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
   const [tab, setTab] = useState<"products" | "giveaways">("products");
