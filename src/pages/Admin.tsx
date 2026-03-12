@@ -433,12 +433,12 @@ export default function Admin() {
                   {/* Add new plan */}
                   <div className="border-t border-border pt-4 space-y-3">
                     <p className="text-[11px] font-medium text-muted-foreground">Adicionar plano</p>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-[1fr_100px] gap-2">
                       <input
                         value={newPlanName}
                         onChange={e => setNewPlanName(e.target.value)}
                         placeholder="Nome (ex: Mensal)"
-                        className={`${inputClass} flex-1`}
+                        className={inputClass}
                       />
                       <input
                         type="number"
@@ -446,7 +446,7 @@ export default function Admin() {
                         value={newPlanPrice}
                         onChange={e => setNewPlanPrice(e.target.value)}
                         placeholder="Preço"
-                        className={`${inputClass} w-24`}
+                        className={inputClass}
                       />
                     </div>
                     <button
