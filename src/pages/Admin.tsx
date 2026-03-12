@@ -375,6 +375,27 @@ export default function Admin() {
                     <label className="text-xs text-muted-foreground mb-1 block">Vendas</label>
                     <input value={pSales} onChange={e => setPSales(e.target.value)} placeholder="Ex: 1.2k vendas" className={inputClass} />
                   </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Thumbnail</label>
+                    {pImagePreview ? (
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden bg-secondary mb-2">
+                        <img src={pImagePreview} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => { setPImageFile(null); setPImagePreview(null); }}
+                          className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 w-full h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/30 cursor-pointer transition-colors bg-secondary/30">
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Clique para enviar imagem</span>
+                        <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                      </label>
+                    )}
+                  </div>
                   <button
                     onClick={saveProduct}
                     disabled={!pName.trim() || !pPrice.trim()}
