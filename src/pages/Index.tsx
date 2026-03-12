@@ -576,11 +576,19 @@ function TicketForm() {
   const maxLen = 1000;
   const categories = ["Problema com entrega", "Conta não funciona", "Reembolso", "Dúvida geral", "Outro"];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !category || description.trim().length < 10 || !email.trim()) return;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return;
+    
+    await supabase.from("tickets").insert({
+      email: email.trim(),
+      category,
+      subject: subject.trim(),
+      description: description.trim(),
+    });
+    
     setSent(true);
     setTimeout(() => { setSent(false); setSubject(""); setCategory(""); setDescription(""); setEmail(""); }, 4000);
   };

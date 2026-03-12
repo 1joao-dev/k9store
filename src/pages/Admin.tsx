@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
@@ -24,11 +24,23 @@ type Giveaway = {
   active: boolean;
 };
 
+type TicketItem = {
+  id: string;
+  email: string;
+  category: string;
+  subject: string;
+  description: string;
+  status: string;
+  admin_response: string | null;
+  created_at: string;
+};
+
 export default function Admin() {
   const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
-  const [tab, setTab] = useState<"products" | "giveaways">("products");
+  const [tab, setTab] = useState<"products" | "giveaways" | "tickets">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
+  const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Product form
@@ -49,14 +61,20 @@ export default function Admin() {
   const [gEndsIn, setGEndsIn] = useState("");
   const [gHot, setGHot] = useState(false);
 
+  // Ticket response
+  const [respondingTicket, setRespondingTicket] = useState<TicketItem | null>(null);
+  const [ticketResponse, setTicketResponse] = useState("");
+
   const fetchAll = async () => {
     setLoading(true);
-    const [p, g] = await Promise.all([
+    const [p, g, t] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("giveaways").select("*").order("created_at", { ascending: false }),
+      supabase.from("tickets").select("*").order("created_at", { ascending: false }),
     ]);
     if (p.data) setProducts(p.data as Product[]);
     if (g.data) setGiveaways(g.data as Giveaway[]);
+    if (t.data) setTickets(t.data as TicketItem[]);
     setLoading(false);
   };
 
@@ -143,6 +161,30 @@ export default function Admin() {
     fetchAll();
   };
 
+  // Ticket actions
+  const updateTicketStatus = async (id: string, status: string) => {
+    await supabase.from("tickets").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    fetchAll();
+  };
+
+  const respondToTicket = async () => {
+    if (!respondingTicket || !ticketResponse.trim()) return;
+    await supabase.from("tickets").update({
+      admin_response: ticketResponse.trim(),
+      status: "respondido",
+      updated_at: new Date().toISOString(),
+    }).eq("id", respondingTicket.id);
+    setRespondingTicket(null);
+    setTicketResponse("");
+    fetchAll();
+  };
+
+  const deleteTicket = async (id: string) => {
+    if (!confirm("Deletar este ticket?")) return;
+    await supabase.from("tickets").delete().eq("id", id);
+    fetchAll();
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors";
 
   // Auth guards
@@ -202,6 +244,19 @@ export default function Admin() {
               }`}
             >
               <Gift className="h-3 w-3" /> Sorteios
+            </button>
+            <button
+              onClick={() => setTab("tickets")}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                tab === "tickets" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Ticket className="h-3 w-3" /> Tickets
+              {tickets.filter(t => t.status === "aberto").length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                  {tickets.filter(t => t.status === "aberto").length}
+                </span>
+              )}
             </button>
           </div>
           <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
@@ -401,6 +456,140 @@ export default function Admin() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tickets Tab */}
+        {tab === "tickets" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-xl font-bold">Tickets</h1>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {tickets.filter(t => t.status === "aberto").length} aberto(s) · {tickets.length} total
+                </p>
+              </div>
+            </div>
+
+            {/* Respond Modal */}
+            {respondingTicket && (
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold">Responder Ticket</h2>
+                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-3 space-y-1">
+                    <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
+                    <p className="text-xs font-semibold">{respondingTicket.subject}</p>
+                    <p className="text-xs text-muted-foreground">{respondingTicket.description}</p>
+                  </div>
+                  {respondingTicket.admin_response && (
+                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+                      <p className="text-[10px] text-primary font-medium mb-1">Resposta anterior:</p>
+                      <p className="text-xs text-muted-foreground">{respondingTicket.admin_response}</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Sua resposta</label>
+                    <textarea
+                      value={ticketResponse}
+                      onChange={e => setTicketResponse(e.target.value)}
+                      placeholder="Escreva sua resposta..."
+                      rows={4}
+                      className={`${inputClass} resize-none`}
+                    />
+                  </div>
+                  <button
+                    onClick={respondToTicket}
+                    disabled={!ticketResponse.trim()}
+                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Enviar resposta
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center text-sm text-muted-foreground py-12">Carregando...</div>
+            ) : tickets.length === 0 ? (
+              <div className="bg-card border border-border rounded-xl p-12 text-center">
+                <Ticket className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground">Nenhum ticket recebido</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {tickets.map(t => {
+                  const statusColors: Record<string, string> = {
+                    aberto: "bg-destructive/10 text-destructive",
+                    respondido: "bg-primary/10 text-primary",
+                    fechado: "bg-secondary text-muted-foreground",
+                  };
+                  return (
+                    <div key={t.id} className="bg-card border border-border rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-semibold truncate">{t.subject}</h3>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${statusColors[t.status] || statusColors.aberto}`}>
+                              {t.status}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mb-1">
+                            {t.email} · {t.category} · {new Date(t.created_at).toLocaleDateString("pt-BR")}
+                          </p>
+                          <p className="text-xs text-muted-foreground/80 line-clamp-2">{t.description}</p>
+                          {t.admin_response && (
+                            <div className="mt-2 p-2 rounded bg-primary/5 border border-primary/10">
+                              <p className="text-[10px] text-primary font-medium">Resposta:</p>
+                              <p className="text-xs text-muted-foreground">{t.admin_response}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => { setRespondingTicket(t); setTicketResponse(t.admin_response || ""); }}
+                            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                            title="Responder"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                          </button>
+                          {t.status === "aberto" && (
+                            <button
+                              onClick={() => updateTicketStatus(t.id, "fechado")}
+                              className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary"
+                              title="Fechar ticket"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {t.status === "fechado" && (
+                            <button
+                              onClick={() => updateTicketStatus(t.id, "aberto")}
+                              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                              title="Reabrir ticket"
+                            >
+                              <Clock className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteTicket(t.id)}
+                            className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                            title="Deletar"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
