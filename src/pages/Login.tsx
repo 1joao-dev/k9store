@@ -199,9 +199,9 @@ export default function Login() {
             </form>
           )}
 
-          {/* Signup Form */}
+          {/* Signup Form - with username */}
           {view === "signup" && (
-            <form onSubmit={handleSignUp} className="space-y-4">
+            <form onSubmit={handleSignUp} className="space-y-3.5">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de usuário</label>
                 <div className="relative">
