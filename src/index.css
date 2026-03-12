@@ -6,35 +6,35 @@
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 270 60% 55%;
-    --primary-foreground: 0 0% 100%;
+    --background: 0 0% 2%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 120 100% 40%;
+    --primary-foreground: 0 0% 2%;
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 70%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 270 60% 55%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 120 80% 35%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 270 60% 55%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 120 100% 40%;
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 3%;
     --sidebar-foreground: 0 0% 70%;
-    --sidebar-primary: 270 60% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 120 100% 40%;
+    --sidebar-primary-foreground: 0 0% 2%;
     --sidebar-accent: 0 0% 8%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 270 60% 55%;
+    --sidebar-ring: 120 100% 40%;
   }
 }
 
@@ -48,7 +48,6 @@
   }
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -60,7 +59,6 @@
   border-radius: 3px;
 }
 
-/* Avatar marquee animation */
 @keyframes scroll-left {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -70,7 +68,6 @@
   animation: scroll-left 60s linear infinite;
 }
 
-/* Glow effect */
-.zeus-glow {
-  box-shadow: 0 0 40px -10px hsl(270 60% 55% / 0.3);
+.k9-glow {
+  box-shadow: 0 0 50px -10px hsl(120 100% 40% / 0.35);
 }

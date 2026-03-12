@@ -121,7 +121,7 @@ const Index = () => {
         }} />
         <div className="relative max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
           <div>
-            <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
+            <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 k9-glow" />
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
               K9 Store{" "}
               <br />
@@ -170,7 +170,7 @@ const Index = () => {
               { name: "Steam Account", price: "$2.99", tags: ["STEAM", "FIVEM", "GAMES"], badge: "5+ games" },
               { name: "RedEngine Spoofer", price: "$8.00", tags: ["FIVEM", "SPOOFER", "TOOL"], badge: "Weekly/Lifetime" },
             ].map((product) => (
-              <div key={product.name} className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all hover:zeus-glow">
+              <div key={product.name} className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all hover:k9-glow">
                 <div className="aspect-square rounded-xl bg-muted flex items-center justify-center mb-4">
                   <Gamepad2 className="h-12 w-12 text-muted-foreground" />
                 </div>
