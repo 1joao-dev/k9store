@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
 
 const SECTIONS = [
@@ -59,6 +60,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
+  const { user, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,9 +121,23 @@ const Index = () => {
             <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
               <ShoppingCart className="h-4 w-4" />
             </button>
-            <Link to="/login" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
-              Entrar
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-1.5">
+                {isAdmin && (
+                  <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Painel Admin">
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                )}
+                <span className="text-[10px] text-muted-foreground hidden sm:inline">{user.user_metadata?.username || user.email?.split("@")[0]}</span>
+                <button onClick={signOut} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
+                Entrar
+              </Link>
+            )}
           </div>
         </div>
       </nav>
