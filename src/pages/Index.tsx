@@ -74,7 +74,7 @@ const Index = () => {
           <div>
             <img src={logo} alt="K9" className="h-20 w-20 rounded-2xl mb-8 zeus-glow" />
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
-              Zeus Space{" "}
+              K9 Store{" "}
               <br />
               <span className="text-primary">built for serious buyers.</span>
             </h1>
@@ -156,7 +156,7 @@ const Index = () => {
             <span className="text-primary">customers at scale.</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            More than 50,000 customers have used Zeus Space. That trust is built on reliable delivery, disciplined operations and a catalog that moves with real market demand.
+            More than 50,000 customers have used K9 Store. That trust is built on reliable delivery, disciplined operations and a catalog that moves with real market demand.
           </p>
           <div className="mt-12 overflow-hidden">
             <div className="flex animate-scroll-left" style={{ width: "200%" }}>
@@ -202,7 +202,7 @@ const Index = () => {
             <span className="text-primary">See what customers say.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            Feedback from real customers who buy through Zeus Space and return for reliability, speed and execution.
+            Feedback from real customers who buy through K9 Store and return for reliability, speed and execution.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {REVIEWS.map((review, i) => (
@@ -235,7 +235,7 @@ const Index = () => {
             <span className="text-primary">global market.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Zeus Space serves customers across regions with multilingual support, automated delivery and a catalog designed around live demand.
+            K9 Store serves customers across regions with multilingual support, automated delivery and a catalog designed around live demand.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {COUNTRIES.map(c => (
@@ -258,9 +258,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
-            <span className="text-sm font-semibold">Zeus Space</span>
+            <span className="text-sm font-semibold">K9 Store</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2025 Zeus Space. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2025 K9 Store. All rights reserved.</p>
         </div>
       </footer>
     </div>
