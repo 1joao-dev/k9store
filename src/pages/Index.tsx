@@ -298,68 +298,42 @@ const Index = () => {
                   <motion.div
                     key={product.id}
                     variants={fadeUp}
-                    className="group bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+                    onClick={() => setSelectedProduct(product)}
+                    className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Gamepad2 className="h-5 w-5 text-primary" />
-                      </div>
-                      {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
-                    </div>
-                    <h3 className="font-semibold text-sm">{product.name}</h3>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {product.tags.map(tag => (
-                        <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
-                      ))}
-                      {product.badge && (
-                        <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
-                      )}
-                    </div>
-                    {/* Plans */}
-                    {product.plans && product.plans.length > 0 ? (
-                      <div className="mt-3 space-y-1.5">
-                        <p className="text-[10px] text-muted-foreground font-medium">Escolha o plano:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {product.plans.map(plan => {
-                            const isSelected = selectedPlans[product.id] === plan.id;
-                            return (
-                              <button
-                                key={plan.id}
-                                onClick={() => setSelectedPlans(prev => ({ ...prev, [product.id]: plan.id }))}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                                  isSelected
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-primary/20"
-                                }`}
-                              >
-                                {plan.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-lg font-bold text-primary">
-                            {selectedPlans[product.id]
-                              ? `R$${product.plans.find(p => p.id === selectedPlans[product.id])!.price.toFixed(2).replace('.', ',')}`
-                              : `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
-                            }
-                          </p>
-                          <button
-                            disabled={!selectedPlans[product.id]}
-                            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all disabled:opacity-30"
-                          >
-                            Comprar
-                          </button>
-                        </div>
+                    {/* Thumbnail */}
+                    {product.image_url ? (
+                      <div className="w-full h-40 bg-secondary overflow-hidden">
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     ) : (
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-lg font-bold text-primary">R${product.price.toFixed(2).replace('.', ',')}</p>
-                        <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
-                          Comprar
-                        </button>
+                      <div className="w-full h-40 bg-secondary/50 flex items-center justify-center">
+                        <Image className="h-8 w-8 text-muted-foreground/20" />
                       </div>
                     )}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-semibold text-sm">{product.name}</h3>
+                        {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {product.tags.map(tag => (
+                          <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                        ))}
+                        {product.badge && (
+                          <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-lg font-bold text-primary">
+                          {product.plans && product.plans.length > 0
+                            ? `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
+                            : `R$${product.price.toFixed(2).replace('.', ',')}`
+                          }
+                        </p>
+                        <span className="text-[10px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">Ver detalhes →</span>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </div>
