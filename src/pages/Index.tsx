@@ -8,6 +8,8 @@ const SECTIONS = [
   { id: "store", label: "Loja" },
   { id: "giveaways", label: "Sorteios" },
   { id: "tools", label: "Ferramentas" },
+  { id: "feedback", label: "Feedback" },
+  { id: "ticket", label: "Ticket" },
 ];
 
 const PRODUCTS = [
