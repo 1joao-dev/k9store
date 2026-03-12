@@ -52,6 +52,12 @@ export default function Admin() {
   const [pBadge, setPBadge] = useState("");
   const [pSales, setPSales] = useState("");
 
+  // Plans management
+  const [managingPlansFor, setManagingPlansFor] = useState<Product | null>(null);
+  const [plans, setPlans] = useState<{ id: string; name: string; price: number; sort_order: number }[]>([]);
+  const [newPlanName, setNewPlanName] = useState("");
+  const [newPlanPrice, setNewPlanPrice] = useState("");
+
   // Giveaway form
   const [showGiveawayForm, setShowGiveawayForm] = useState(false);
   const [editingGiveaway, setEditingGiveaway] = useState<Giveaway | null>(null);
