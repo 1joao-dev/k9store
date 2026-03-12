@@ -448,7 +448,7 @@ const Index = () => {
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
                 <a
-                  href="https://discord.gg/"
+                  href="https://discord.gg/gWx8rg87fA"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-7 py-3 rounded-full border border-border text-sm font-medium hover:bg-secondary transition-all"
