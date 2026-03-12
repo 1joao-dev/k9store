@@ -256,7 +256,7 @@ const Index = () => {
       <footer className="border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={zeusLogo} alt="Zeus Space" className="h-6 w-6 rounded-md" />
+            <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
             <span className="text-sm font-semibold">Zeus Space</span>
           </div>
           <p className="text-xs text-muted-foreground">© 2025 Zeus Space. All rights reserved.</p>
