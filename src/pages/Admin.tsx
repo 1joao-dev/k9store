@@ -25,6 +25,7 @@ type Giveaway = {
 };
 
 export default function Admin() {
+  const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
   const [tab, setTab] = useState<"products" | "giveaways">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
