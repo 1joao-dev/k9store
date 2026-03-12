@@ -12,6 +12,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  image_url: string | null;
 };
 
 type Giveaway = {
