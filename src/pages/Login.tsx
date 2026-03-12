@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowLeft, AlertCircle, Eye, EyeOff, LogIn, UserPlus, KeyRound } from "lucide-react";
+import { Mail, Lock, ArrowLeft, AlertCircle, Eye, EyeOff, LogIn, UserPlus, KeyRound, User, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import logo from "@/assets/k9-logo.png";
 
 type View = "login" | "signup" | "forgot";
@@ -11,6 +11,8 @@ export default function Login() {
   const [view, setView] = useState<View>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,6 +27,31 @@ export default function Login() {
     setMessage("");
   };
 
+  // Debounced username availability check
+  useEffect(() => {
+    const trimmed = username.trim().toLowerCase();
+    if (trimmed.length < 3) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    // Validate: only letters, numbers, underscores
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    const timer = setTimeout(async () => {
+      const { data, error } = await supabase.rpc("check_username_available", { p_username: trimmed });
+      if (!error) {
+        setUsernameStatus(data ? "available" : "taken");
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [username]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); setLoading(true);
@@ -37,9 +64,30 @@ export default function Login() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); setMessage(""); setLoading(true);
+
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length < 3) {
+      setError("Nome de usuário deve ter pelo menos 3 caracteres.");
+      setLoading(false);
+      return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+      setError("Nome de usuário só pode ter letras, números e _");
+      setLoading(false);
+      return;
+    }
+    if (usernameStatus === "taken") {
+      setError("Esse nome de usuário já está em uso.");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { username: trimmedUsername },
+      },
     });
     if (error) setError(error.message);
     else setMessage("Verifique seu email para confirmar a conta.");
@@ -61,6 +109,13 @@ export default function Login() {
     login: { title: "Bem-vindo de volta", subtitle: "Entre na sua conta K9 Store" },
     signup: { title: "Criar conta", subtitle: "Registre-se na K9 Store" },
     forgot: { title: "Esqueceu a senha?", subtitle: "Enviaremos um link de recuperação" },
+  };
+
+  const usernameIcon = {
+    idle: null,
+    checking: <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin" />,
+    available: <CheckCircle2 className="h-3.5 w-3.5 text-primary" />,
+    taken: <XCircle className="h-3.5 w-3.5 text-destructive" />,
   };
 
   return (
@@ -148,6 +203,39 @@ export default function Login() {
           {view === "signup" && (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Nome de usuário</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20))}
+                    placeholder="seu_username"
+                    required
+                    minLength={3}
+                    maxLength={20}
+                    className={`${inputClass} pl-9 pr-9 ${
+                      usernameStatus === "available" ? "border-primary/40" :
+                      usernameStatus === "taken" ? "border-destructive/40" : ""
+                    }`}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {usernameIcon[usernameStatus]}
+                  </div>
+                </div>
+                <p className={`text-[10px] mt-1 ${
+                  usernameStatus === "available" ? "text-primary" :
+                  usernameStatus === "taken" ? "text-destructive" :
+                  "text-muted-foreground/50"
+                }`}>
+                  {usernameStatus === "checking" && "Verificando..."}
+                  {usernameStatus === "available" && "✓ Disponível!"}
+                  {usernameStatus === "taken" && "✗ Já está em uso"}
+                  {usernameStatus === "idle" && username.length > 0 && username.length < 3 && "Mínimo 3 caracteres"}
+                  {usernameStatus === "idle" && username.length === 0 && "Letras, números e _ (3-20 caracteres)"}
+                </p>
+              </div>
+              <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
@@ -164,7 +252,11 @@ export default function Login() {
                   </button>
                 </div>
               </div>
-              <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+              <button
+                type="submit"
+                disabled={loading || usernameStatus === "taken" || usernameStatus === "checking" || username.trim().length < 3}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+              >
                 <UserPlus className="h-3.5 w-3.5" />
                 {loading ? "Criando..." : "Criar conta"}
               </button>
