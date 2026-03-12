@@ -258,7 +258,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
-            <span className="text-sm font-semibold">Zeus Space</span>
+            <span className="text-sm font-semibold">K9 Store</span>
           </div>
           <p className="text-xs text-muted-foreground">© 2025 Zeus Space. All rights reserved.</p>
         </div>
