@@ -161,6 +161,30 @@ export default function Admin() {
     fetchAll();
   };
 
+  // Ticket actions
+  const updateTicketStatus = async (id: string, status: string) => {
+    await supabase.from("tickets").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    fetchAll();
+  };
+
+  const respondToTicket = async () => {
+    if (!respondingTicket || !ticketResponse.trim()) return;
+    await supabase.from("tickets").update({
+      admin_response: ticketResponse.trim(),
+      status: "respondido",
+      updated_at: new Date().toISOString(),
+    }).eq("id", respondingTicket.id);
+    setRespondingTicket(null);
+    setTicketResponse("");
+    fetchAll();
+  };
+
+  const deleteTicket = async (id: string) => {
+    if (!confirm("Deletar este ticket?")) return;
+    await supabase.from("tickets").delete().eq("id", id);
+    fetchAll();
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors";
 
   // Auth guards
