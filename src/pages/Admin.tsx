@@ -217,7 +217,7 @@ export default function Admin() {
     fetchAll();
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors";
+  const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground caret-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors [color-scheme:dark]";
 
   // Auth guards
   if (authLoading || isRoleLoading) {
