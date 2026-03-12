@@ -487,3 +487,187 @@ const Index = () => {
 };
 
 export default Index;
+
+/* ---- Feedback Form ---- */
+function FeedbackForm() {
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [message, setMessage] = useState("");
+  const [product, setProduct] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const maxLen = 500;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0 || message.trim().length < 5) return;
+    setSent(true);
+    setTimeout(() => { setSent(false); setRating(0); setMessage(""); setProduct(""); }, 3000);
+  };
+
+  if (sent) {
+    return (
+      <div className="bg-card border border-primary/20 rounded-xl p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Star className="h-6 w-6 text-primary" />
+        </div>
+        <p className="font-semibold text-sm">Obrigado pelo feedback!</p>
+        <p className="text-xs text-muted-foreground mt-1">Sua avaliação nos ajuda a melhorar.</p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4">
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-2 block">Avaliação</label>
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setRating(s)}
+              onMouseEnter={() => setHover(s)}
+              onMouseLeave={() => setHover(0)}
+              className="p-0.5 transition-transform hover:scale-110"
+            >
+              <Star className={`h-6 w-6 transition-colors ${s <= (hover || rating) ? "fill-primary text-primary" : "text-muted-foreground/30"}`} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Produto (opcional)</label>
+        <input
+          type="text"
+          value={product}
+          onChange={(e) => setProduct(e.target.value.slice(0, 100))}
+          placeholder="Ex: Conta Steam, Aurora Menu..."
+          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Mensagem</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value.slice(0, maxLen))}
+          placeholder="Conte sua experiência..."
+          rows={4}
+          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors resize-none"
+        />
+        <p className="text-[10px] text-muted-foreground/50 text-right mt-0.5">{message.length}/{maxLen}</p>
+      </div>
+      <button
+        type="submit"
+        disabled={rating === 0 || message.trim().length < 5}
+        className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+      >
+        <Send className="h-3.5 w-3.5" />
+        Enviar feedback
+      </button>
+    </form>
+  );
+}
+
+/* ---- Ticket Form ---- */
+function TicketForm() {
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const maxLen = 1000;
+  const categories = ["Problema com entrega", "Conta não funciona", "Reembolso", "Dúvida geral", "Outro"];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject.trim() || !category || description.trim().length < 10 || !email.trim()) return;
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return;
+    setSent(true);
+    setTimeout(() => { setSent(false); setSubject(""); setCategory(""); setDescription(""); setEmail(""); }, 4000);
+  };
+
+  if (sent) {
+    return (
+      <div className="bg-card border border-primary/20 rounded-xl p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Ticket className="h-6 w-6 text-primary" />
+        </div>
+        <p className="font-semibold text-sm">Ticket enviado com sucesso!</p>
+        <p className="text-xs text-muted-foreground mt-1">Responderemos o mais rápido possível pelo email informado.</p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4">
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email para contato</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value.slice(0, 100))}
+          placeholder="seu@email.com"
+          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Categoria</label>
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                category === c
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Assunto</label>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value.slice(0, 150))}
+          placeholder="Resumo do problema..."
+          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Descrição</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value.slice(0, maxLen))}
+          placeholder="Descreva em detalhe o que aconteceu..."
+          rows={5}
+          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors resize-none"
+        />
+        <p className="text-[10px] text-muted-foreground/50 text-right mt-0.5">{description.length}/{maxLen}</p>
+      </div>
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+        <AlertCircle className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          Responderemos em até 24h pelo email informado. Para urgências, use nosso Discord.
+        </p>
+      </div>
+      <button
+        type="submit"
+        disabled={!subject.trim() || !category || description.trim().length < 10 || !email.trim()}
+        className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+      >
+        <Ticket className="h-3.5 w-3.5" />
+        Enviar ticket
+      </button>
+    </form>
+  );
+}
