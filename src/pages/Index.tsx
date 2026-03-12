@@ -1,26 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, TrendingUp, Award, ShoppingCart, Globe, Gift, Wrench } from "lucide-react";
 // K9 branding logo
 import logo from "@/assets/k9-logo.png";
 
 const SECTIONS = [
-  { id: "home", label: "Home" },
-  { id: "store", label: "Store" },
-  { id: "giveaways", label: "Giveaways" },
-  { id: "tools", label: "Tools" },
+  { id: "home", label: "Início" },
+  { id: "store", label: "Loja" },
+  { id: "giveaways", label: "Sorteios" },
+  { id: "tools", label: "Ferramentas" },
 ];
 
 const FEATURES = [
-  { icon: ShieldCheck, title: "Protected checkout", desc: "A secure purchase and delivery flow built for consistency from payment to private inventory." },
-  { icon: Zap, title: "Automated fulfillment", desc: "Orders are processed through a fast, structured flow that reduces friction after checkout." },
-  { icon: Gamepad2, title: "Curated multi-game catalog", desc: "Digital products, tools and access items selected around demand across major gaming ecosystems." },
-  { icon: Users, title: "Active community channels", desc: "Updates, support and real feedback continue to improve the customer experience after launch." },
-  { icon: TrendingUp, title: "Market-aligned updates", desc: "Availability, pricing and catalog composition evolve continuously with real market movement." },
-  { icon: Award, title: "Quality-first curation", desc: "Listings and partners are reviewed with a serious standard before entering the storefront." },
+  { icon: ShieldCheck, title: "Checkout protegido", desc: "Um fluxo seguro de compra e entrega construído para consistência, do pagamento ao inventário privado." },
+  { icon: Zap, title: "Entrega automatizada", desc: "Pedidos são processados por um fluxo rápido e estruturado que reduz a fricção após a compra." },
+  { icon: Gamepad2, title: "Catálogo multi-jogos", desc: "Produtos digitais, ferramentas e itens de acesso selecionados pela demanda nos principais ecossistemas de jogos." },
+  { icon: Users, title: "Comunidade ativa", desc: "Atualizações, suporte e feedback real que continuam melhorando a experiência do cliente." },
+  { icon: TrendingUp, title: "Atualizações de mercado", desc: "Disponibilidade, preços e composição do catálogo evoluem continuamente com o movimento real do mercado." },
+  { icon: Award, title: "Curadoria de qualidade", desc: "Listagens e parceiros são revisados com um padrão rigoroso antes de entrar na vitrine." },
 ];
 
 const REVIEWS = [
-  { product: "Store review", date: "02/21", text: "Essa loja é boa pra caralho", user: "deuszeus" },
+  { product: "Avaliação da loja", date: "02/21", text: "Essa loja é boa pra caralho", user: "deuszeus" },
   { product: "Steam Para Fivem", date: "03/01", text: "VEIO COM RED DEAD 2, MUITO OBRIGADOOOOO", user: "GuaxinimLoco" },
   { product: "Steam Para Fivem", date: "02/21", text: "Legalzin a steam", user: "deuszeus" },
   { product: "RedEngine Spoofer Semanal", date: "02/21", text: "zzzz", user: "deuszeus" },
@@ -28,15 +28,15 @@ const REVIEWS = [
 ];
 
 const COUNTRIES = [
-  "Brasil", "Portugal", "EUA", "Alemanha", "Rusia", "Chile", "Peru", "Irlanda",
-  "Singapur", "Argentina", "Colombia", "Venezuela", "Turquia", "Hungria", "Iran",
-  "Espanha", "DOM", "Mexico"
+  "Brasil", "Portugal", "EUA", "Alemanha", "Rússia", "Chile", "Peru", "Irlanda",
+  "Singapura", "Argentina", "Colômbia", "Venezuela", "Turquia", "Hungria", "Irã",
+  "Espanha", "Rep. Dominicana", "México"
 ];
 
 const GIVEAWAYS = [
-  { title: "Steam Account Giveaway", entries: 342, endsIn: "2 dias", prize: "Steam Full Access" },
+  { title: "Sorteio de Conta Steam", entries: 342, endsIn: "2 dias", prize: "Steam Full Access" },
   { title: "RedEngine Lifetime", entries: 128, endsIn: "5 dias", prize: "Spoofer Lifetime Key" },
-  { title: "Hytale Cursebreaker", entries: 567, endsIn: "1 dia", prize: "Hytale Cursebreaker Account" },
+  { title: "Hytale Cursebreaker", entries: 567, endsIn: "1 dia", prize: "Conta Hytale Cursebreaker" },
 ];
 
 const TOOLS_LIST = [
@@ -103,16 +103,16 @@ const Index = () => {
             </button>
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Globe className="h-4 w-4" />
-              USD
+              BRL
             </div>
             <button className="px-5 py-2 rounded-full border border-border text-sm font-medium hover:bg-secondary transition-colors">
-              Login
+              Entrar
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Home / Hero */}
+      {/* Início / Hero */}
       <section id="home" className="relative min-h-screen flex items-center pt-16">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
         <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -125,17 +125,17 @@ const Index = () => {
             <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
               K9 Store{" "}
               <br />
-              <span className="text-primary">built for serious buyers.</span>
+              <span className="text-primary">feita pra quem leva a sério.</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-lg leading-relaxed">
-              <span className="text-primary font-medium">A premium operation scaled for a global audience</span>{" "}
-              with curated digital products, automated delivery and constant catalog evolution driven by real demand.
+              <span className="text-primary font-medium">Uma operação premium escalada para um público global</span>{" "}
+              com produtos digitais curados, entrega automatizada e evolução constante do catálogo baseada em demanda real.
             </p>
             <button
               onClick={() => scrollTo("store")}
               className="mt-8 inline-flex items-center gap-2 px-8 py-4 rounded-full border border-border text-sm font-medium hover:bg-secondary transition-all group"
             >
-              Browse catalog
+              Ver catálogo
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -145,30 +145,30 @@ const Index = () => {
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
                   <Gamepad2 className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-sm text-muted-foreground">Video preview</p>
+                <p className="text-sm text-muted-foreground">Prévia do vídeo</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">Aurora Menu 2.0</p>
               </div>
             </div>
           </div>
         </div>
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground cursor-pointer" onClick={() => scrollTo("store")}>
-          <span className="text-xs tracking-[0.3em] uppercase">Scroll to see more</span>
+          <span className="text-xs tracking-[0.3em] uppercase">Role para ver mais</span>
           <div className="w-px h-8 bg-border" />
         </div>
       </section>
 
-      {/* Store */}
+      {/* Loja */}
       <section id="store" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center">
-            Engineered for<br />
-            <span className="text-primary">high-demand digital inventory</span>.
+            Projetado para<br />
+            <span className="text-primary">inventário digital de alta demanda</span>.
           </h2>
           <div className="mt-16 grid md:grid-cols-3 gap-6">
             {[
-              { name: "Hytale Account", price: "$4.54", tags: ["HYTALE", "HYPIXEL", "SANDBOX"], badge: "3 variants" },
-              { name: "Steam Account", price: "$2.99", tags: ["STEAM", "FIVEM", "GAMES"], badge: "5+ games" },
-              { name: "RedEngine Spoofer", price: "$8.00", tags: ["FIVEM", "SPOOFER", "TOOL"], badge: "Weekly/Lifetime" },
+              { name: "Conta Hytale", price: "R$25,00", tags: ["HYTALE", "HYPIXEL", "SANDBOX"], badge: "3 variantes" },
+              { name: "Conta Steam", price: "R$15,00", tags: ["STEAM", "FIVEM", "JOGOS"], badge: "5+ jogos" },
+              { name: "RedEngine Spoofer", price: "R$45,00", tags: ["FIVEM", "SPOOFER", "TOOL"], badge: "Semanal/Vitalício" },
             ].map((product) => (
               <div key={product.name} className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all hover:k9-glow">
                 <div className="aspect-square rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -188,10 +188,10 @@ const Index = () => {
                 <div className="mt-4 flex items-end justify-between">
                   <div>
                     <p className="text-2xl font-bold text-primary">{product.price}</p>
-                    <p className="text-xs text-muted-foreground">Starting at</p>
+                    <p className="text-xs text-muted-foreground">A partir de</p>
                   </div>
                   <button className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity">
-                    Add to Cart
+                    Adicionar
                   </button>
                 </div>
               </div>
@@ -200,15 +200,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trust / Avatars Section */}
+      {/* Confiança / Avatares */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold">
-            Trusted by<br />
-            <span className="text-primary">customers at scale.</span>
+            Confiança de<br />
+            <span className="text-primary">clientes em escala.</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            More than 50,000 customers have used K9 Store. That trust is built on reliable delivery, disciplined operations and a catalog that moves with real market demand.
+            Mais de 50.000 clientes já usaram a K9 Store. Essa confiança é construída com entrega confiável, operações disciplinadas e um catálogo que acompanha a demanda real do mercado.
           </p>
           <div className="mt-12 overflow-hidden">
             <div className="flex animate-scroll-left" style={{ width: "200%" }}>
@@ -231,7 +231,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Diferenciais */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -246,12 +246,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Giveaways */}
+      {/* Sorteios */}
       <section id="giveaways" className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Active<br />
-            <span className="text-primary">Giveaways</span>
+            Sorteios<br />
+            <span className="text-primary">Ativos</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
             Participe dos sorteios ativos e ganhe produtos digitais premium gratuitamente.
@@ -261,7 +261,7 @@ const Index = () => {
               <div key={i} className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-2 mb-4">
                   <Gift className="h-5 w-5 text-primary" />
-                  <span className="text-xs text-primary font-medium uppercase tracking-wider">Giveaway</span>
+                  <span className="text-xs text-primary font-medium uppercase tracking-wider">Sorteio</span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{giveaway.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">Prêmio: {giveaway.prize}</p>
@@ -278,15 +278,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Reviews */}
+      {/* Avaliações */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Need more certainty?<br />
-            <span className="text-primary">See what customers say.</span>
+            Precisa de mais certeza?<br />
+            <span className="text-primary">Veja o que os clientes dizem.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            Feedback from real customers who buy through K9 Store and return for reliability, speed and execution.
+            Feedback de clientes reais que compram na K9 Store e voltam pela confiabilidade, velocidade e execução.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {REVIEWS.map((review, i) => (
@@ -302,7 +302,7 @@ const Index = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">{review.user}</p>
-                    <p className="text-xs text-muted-foreground">Customer</p>
+                    <p className="text-xs text-muted-foreground">Cliente</p>
                   </div>
                 </div>
               </div>
@@ -311,12 +311,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Tools */}
+      {/* Ferramentas */}
       <section id="tools" className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Free<br />
-            <span className="text-primary">Tools</span>
+            Ferramentas<br />
+            <span className="text-primary">Gratuitas</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
             Ferramentas gratuitas para ajudar no seu dia a dia.
@@ -336,15 +336,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Global Section */}
+      {/* Presença Global */}
       <section className="py-24 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            Positioned for the<br />
-            <span className="text-primary">global market.</span>
+            Posicionada para o<br />
+            <span className="text-primary">mercado global.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            K9 Store serves customers across regions with multilingual support, automated delivery and a catalog designed around live demand.
+            A K9 Store atende clientes em diversas regiões com suporte multilíngue, entrega automatizada e um catálogo projetado para a demanda real.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {COUNTRIES.map(c => (
@@ -358,21 +358,21 @@ const Index = () => {
               onClick={() => scrollTo("store")}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity group"
             >
-              Browse all products
+              Ver todos os produtos
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Rodapé */}
       <footer className="border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="K9" className="h-6 w-6 rounded-md" />
             <span className="text-sm font-semibold">K9 Store</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2025 K9 Store. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2025 K9 Store. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
