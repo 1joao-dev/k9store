@@ -890,32 +890,255 @@ function FeedbackForm() {
   );
 }
 
+/* ---- Ticket Section ---- */
+type TicketData = {
+  id: string;
+  subject: string;
+  category: string;
+  status: string;
+  created_at: string;
+  admin_response: string | null;
+  description: string;
+};
+
+function TicketSection() {
+  const { user } = useAuth();
+  const [tab, setTab] = useState<"new" | "list">(user ? "list" : "new");
+  const [tickets, setTickets] = useState<TicketData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [viewTicket, setViewTicket] = useState<TicketData | null>(null);
+
+  const fetchTickets = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("tickets")
+      .select("id, subject, category, status, created_at, admin_response, description")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    setTickets(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (user) fetchTickets();
+  }, [user?.id]);
+
+  const statusColor = (s: string) => {
+    if (s === "respondido") return "bg-green-500/10 text-green-400 border-green-500/20";
+    if (s === "fechado") return "bg-muted text-muted-foreground border-border";
+    return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+  };
+
+  const statusLabel = (s: string) => {
+    if (s === "respondido") return "Respondido";
+    if (s === "fechado") return "Fechado";
+    return "Aberto";
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Tabs */}
+      {user && (
+        <div className="flex gap-1 bg-secondary/50 p-1 rounded-xl border border-border">
+          <button
+            onClick={() => setTab("list")}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+              tab === "list" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Eye className="h-3.5 w-3.5" /> Meus Tickets ({tickets.length})
+          </button>
+          <button
+            onClick={() => setTab("new")}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+              tab === "new" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Plus className="h-3.5 w-3.5" /> Novo Ticket
+          </button>
+        </div>
+      )}
+
+      {!user && (
+        <div className="bg-secondary/30 border border-border rounded-xl p-4 flex items-center gap-3 mb-2">
+          <AlertCircle className="h-4 w-4 text-primary flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            <Link to="/login" className="text-primary font-semibold hover:underline">Faça login</Link> para acompanhar seus tickets. Você também pode enviar sem conta.
+          </p>
+        </div>
+      )}
+
+      {tab === "new" && <TicketForm onCreated={() => { setTab("list"); fetchTickets(); }} />}
+
+      {tab === "list" && user && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Seus chamados de suporte</p>
+            <button onClick={fetchTickets} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Atualizar
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="h-5 w-5 text-muted-foreground/30 mx-auto animate-spin mb-3" />
+              <p className="text-xs text-muted-foreground">Carregando...</p>
+            </div>
+          ) : tickets.length === 0 ? (
+            <div className="text-center py-12 bg-card border border-border rounded-xl">
+              <Ticket className="h-8 w-8 text-muted-foreground/15 mx-auto mb-3" />
+              <p className="text-sm font-medium text-muted-foreground">Nenhum ticket encontrado</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Crie um novo ticket para receber suporte</p>
+              <button onClick={() => setTab("new")} className="mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all inline-flex items-center gap-1.5">
+                <Plus className="h-3.5 w-3.5" /> Abrir Ticket
+              </button>
+            </div>
+          ) : (
+            tickets.map((t) => (
+              <div key={t.id} className="bg-card border border-border rounded-xl p-4 hover:border-primary/20 transition-colors cursor-pointer" onClick={() => setViewTicket(t)}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor(t.status)}`}>
+                        {statusLabel(t.status)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/50">{t.category}</span>
+                    </div>
+                    <p className="text-sm font-semibold truncate">{t.subject}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {new Date(t.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground/30 mt-2 flex-shrink-0" />
+                </div>
+                {t.admin_response && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[10px] font-semibold text-primary mb-1">Resposta da equipe:</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{t.admin_response}</p>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Ticket Detail Modal */}
+      <AnimatePresence>
+        {viewTicket && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setViewTicket(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-card border border-border rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            >
+              <div className="p-5 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Ticket className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold">Detalhes do Ticket</span>
+                </div>
+                <button onClick={() => setViewTicket(null)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor(viewTicket.status)}`}>
+                    {statusLabel(viewTicket.status)}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">{viewTicket.category}</span>
+                  <span className="text-[10px] text-muted-foreground/50 ml-auto">
+                    {new Date(viewTicket.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground/60 mb-1">Assunto</p>
+                  <p className="text-sm font-semibold">{viewTicket.subject}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground/60 mb-1">Descrição</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{viewTicket.description}</p>
+                </div>
+
+                {viewTicket.admin_response && (
+                  <div className="bg-primary/5 border border-primary/15 rounded-xl p-4">
+                    <p className="text-xs font-semibold text-primary mb-2 flex items-center gap-1.5">
+                      <MessageCircle className="h-3.5 w-3.5" /> Resposta da Equipe
+                    </p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{viewTicket.admin_response}</p>
+                  </div>
+                )}
+
+                {!viewTicket.admin_response && viewTicket.status === "aberto" && (
+                  <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl p-4 flex items-start gap-2.5">
+                    <Clock className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-yellow-400">Aguardando resposta</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Nossa equipe responderá em até 24h.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /* ---- Ticket Form ---- */
-function TicketForm() {
+function TicketForm({ onCreated }: { onCreated?: () => void }) {
+  const { user } = useAuth();
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const maxLen = 1000;
   const categories = ["Problema com entrega", "Conta não funciona", "Reembolso", "Dúvida geral", "Outro"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subject.trim() || !category || description.trim().length < 10 || !email.trim()) return;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return;
+    if (!subject.trim() || !category || description.trim().length < 10) return;
     
+    const ticketEmail = user?.email || email.trim();
+    if (!ticketEmail) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(ticketEmail)) return;
+
+    setSubmitting(true);
     await supabase.from("tickets").insert({
-      email: email.trim(),
+      email: ticketEmail,
       category,
       subject: subject.trim(),
       description: description.trim(),
+      ...(user ? { user_id: user.id } : {}),
     });
-    
+
+    setSubmitting(false);
     setSent(true);
-    setTimeout(() => { setSent(false); setSubject(""); setCategory(""); setDescription(""); setEmail(""); }, 4000);
+    setTimeout(() => {
+      setSent(false);
+      setSubject("");
+      setCategory("");
+      setDescription("");
+      setEmail("");
+      onCreated?.();
+    }, 2000);
   };
 
   if (sent) {
@@ -925,23 +1148,25 @@ function TicketForm() {
           <Ticket className="h-6 w-6 text-primary" />
         </div>
         <p className="font-semibold text-sm">Ticket enviado com sucesso!</p>
-        <p className="text-xs text-muted-foreground mt-1">Responderemos o mais rápido possível pelo email informado.</p>
+        <p className="text-xs text-muted-foreground mt-1">Responderemos o mais rápido possível.</p>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 space-y-4">
-      <div>
-        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email para contato</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value.slice(0, 100))}
-          placeholder="seu@email.com"
-          className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
-        />
-      </div>
+      {!user && (
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email para contato</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value.slice(0, 100))}
+            placeholder="seu@email.com"
+            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+          />
+        </div>
+      )}
       <div>
         <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Categoria</label>
         <div className="flex flex-wrap gap-1.5">
@@ -985,16 +1210,16 @@ function TicketForm() {
       <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
         <AlertCircle className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Responderemos em até 24h pelo email informado. Para urgências, use nosso Discord.
+          Responderemos em até 24h. {user ? "Acompanhe o status na aba 'Meus Tickets'." : "Para urgências, use nosso Discord."}
         </p>
       </div>
       <button
         type="submit"
-        disabled={!subject.trim() || !category || description.trim().length < 10 || !email.trim()}
+        disabled={!subject.trim() || !category || description.trim().length < 10 || (!user && !email.trim()) || submitting}
         className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
       >
         <Ticket className="h-3.5 w-3.5" />
-        Enviar ticket
+        {submitting ? "Enviando..." : "Enviar ticket"}
       </button>
     </form>
   );
