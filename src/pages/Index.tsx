@@ -401,25 +401,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Feedback */}
-      <section id="feedback" className="py-20 border-t border-border">
-        <div className="max-w-6xl mx-auto px-5">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
-            <motion.div variants={fadeUp} className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium mb-4">
-                <Star className="h-3 w-3" /> Sua opinião importa
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold">
-                Deixe seu <span className="text-primary">Feedback</span>
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">Nos ajude a melhorar sua experiência</p>
-            </motion.div>
-            <motion.div variants={fadeUp} className="max-w-lg mx-auto">
-              <FeedbackForm />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Ticket */}
       <section id="ticket" className="py-20 border-t border-border">
