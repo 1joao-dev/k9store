@@ -332,16 +332,17 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Avaliações */}
-      <section className="py-20 border-t border-border">
+      {/* Avaliações + Feedback */}
+      <section id="feedback" className="py-20 border-t border-border">
         <div className="max-w-6xl mx-auto px-5">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
             <motion.div variants={fadeUp} className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold">
                 O que dizem <span className="text-primary">nossos clientes</span>
               </h2>
+              <p className="text-sm text-muted-foreground mt-2">Veja avaliações reais e deixe a sua também</p>
             </motion.div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
               {REVIEWS.map((r, i) => (
                 <motion.div key={i} variants={fadeUp} className="bg-card border border-border rounded-xl p-5">
                   <div className="flex gap-0.5 mb-3">
@@ -362,6 +363,14 @@ const Index = () => {
                 </motion.div>
               ))}
             </div>
+            <motion.div variants={fadeUp} className="max-w-lg mx-auto">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium">
+                  <Star className="h-3 w-3" /> Deixe seu feedback
+                </div>
+              </div>
+              <FeedbackForm />
+            </motion.div>
           </motion.div>
         </div>
       </section>
