@@ -245,6 +245,19 @@ export default function Admin() {
             >
               <Gift className="h-3 w-3" /> Sorteios
             </button>
+            <button
+              onClick={() => setTab("tickets")}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                tab === "tickets" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Ticket className="h-3 w-3" /> Tickets
+              {tickets.filter(t => t.status === "aberto").length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                  {tickets.filter(t => t.status === "aberto").length}
+                </span>
+              )}
+            </button>
           </div>
           <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
             <LogOut className="h-4 w-4" />
