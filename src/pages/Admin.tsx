@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck } from "lucide-react";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
 
 type Product = {
@@ -24,6 +25,7 @@ type Giveaway = {
 };
 
 export default function Admin() {
+  const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
   const [tab, setTab] = useState<"products" | "giveaways">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
@@ -143,6 +145,35 @@ export default function Admin() {
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors";
 
+  // Auth guards
+  if (authLoading || isRoleLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <ShieldCheck className="h-8 w-8 text-primary mx-auto mb-3 animate-pulse" />
+          <p className="text-sm text-muted-foreground">Verificando acesso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <ShieldCheck className="h-10 w-10 text-destructive mx-auto mb-4" />
+          <h1 className="text-lg font-bold mb-1">Acesso negado</h1>
+          <p className="text-xs text-muted-foreground mb-4">Sua conta não tem permissão de administrador.</p>
+          <Link to="/" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <ArrowLeft className="h-3 w-3" /> Voltar à loja
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -173,6 +204,9 @@ export default function Admin() {
               <Gift className="h-3 w-3" /> Sorteios
             </button>
           </div>
+          <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </nav>
 
