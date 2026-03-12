@@ -170,7 +170,7 @@ const Index = () => {
               { name: "Steam Account", price: "$2.99", tags: ["STEAM", "FIVEM", "GAMES"], badge: "5+ games" },
               { name: "RedEngine Spoofer", price: "$8.00", tags: ["FIVEM", "SPOOFER", "TOOL"], badge: "Weekly/Lifetime" },
             ].map((product) => (
-              <div key={product.name} className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all hover:zeus-glow">
+              <div key={product.name} className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all hover:k9-glow">
                 <div className="aspect-square rounded-xl bg-muted flex items-center justify-center mb-4">
                   <Gamepad2 className="h-12 w-12 text-muted-foreground" />
                 </div>
