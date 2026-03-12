@@ -156,7 +156,7 @@ const Index = () => {
             <span className="text-primary">customers at scale.</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            More than 50,000 customers have used Zeus Space. That trust is built on reliable delivery, disciplined operations and a catalog that moves with real market demand.
+            More than 50,000 customers have used K9 Store. That trust is built on reliable delivery, disciplined operations and a catalog that moves with real market demand.
           </p>
           <div className="mt-12 overflow-hidden">
             <div className="flex animate-scroll-left" style={{ width: "200%" }}>
