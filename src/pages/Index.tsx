@@ -294,45 +294,95 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground/60 mt-1">Novos produtos serão adicionados em breve!</p>
               </motion.div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {products.map((product) => (
                   <motion.div
                     key={product.id}
                     variants={fadeUp}
                     onClick={() => setSelectedProduct(product)}
-                    className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+                    className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer relative"
                   >
-                    {/* Thumbnail */}
-                    {product.image_url ? (
-                      <div className="w-full h-40 bg-secondary overflow-hidden">
-                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    ) : (
-                      <div className="w-full h-40 bg-secondary/50 flex items-center justify-center">
-                        <Image className="h-8 w-8 text-muted-foreground/20" />
+                    {/* Badge */}
+                    {product.badge && (
+                      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-primary/90 text-primary-foreground text-[10px] font-semibold flex items-center gap-1 backdrop-blur-sm">
+                        <Star className="h-2.5 w-2.5 fill-current" />
+                        {product.badge}
                       </div>
                     )}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-sm">{product.name}</h3>
-                        {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
+
+                    {/* Thumbnail */}
+                    <div className="relative w-full h-48 bg-secondary overflow-hidden">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                          <Image className="h-10 w-10 text-muted-foreground/15" />
+                        </div>
+                      )}
+                      {/* Tags overlay on image */}
+                      <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
                         {product.tags.map(tag => (
-                          <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                          <span key={tag} className="text-[8px] tracking-wider px-2 py-0.5 rounded bg-background/70 backdrop-blur-sm text-foreground/80 uppercase font-medium">{tag}</span>
                         ))}
-                        {product.badge && (
-                          <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
-                        )}
                       </div>
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-lg font-bold text-primary">
-                          {product.plans && product.plans.length > 0
-                            ? `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
-                            : `R$${product.price.toFixed(2).replace('.', ',')}`
-                          }
-                        </p>
-                        <span className="text-[10px] text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">Ver detalhes →</span>
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold text-sm leading-tight line-clamp-2">{product.name}</h3>
+                      
+                      {/* Variants count */}
+                      {product.plans && product.plans.length > 0 && (
+                        <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          {product.plans.length} variante{product.plans.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+
+                      {/* Price */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div>
+                          <p className="text-lg font-black text-foreground">
+                            R$ {product.plans && product.plans.length > 0
+                              ? Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')
+                              : product.price.toFixed(2).replace('.', ',')
+                            }
+                          </p>
+                          {product.plans && product.plans.length > 0 && (
+                            <p className="text-[10px] text-muted-foreground -mt-0.5">A partir de</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-primary font-medium flex items-center gap-0.5">● Disponíveis</span>
+                      </div>
+
+                      {/* Sales */}
+                      {product.sales && (
+                        <div className="flex items-center gap-1 text-[10px] text-primary/70">
+                          <Users className="h-3 w-3" />
+                          <span>+{product.sales}</span>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }}
+                          className="flex-1 py-2 rounded-xl border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all inline-flex items-center justify-center gap-1.5"
+                        >
+                          Detalhes
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (product.plans && product.plans.length > 0) {
+                              setSelectedProduct(product);
+                            } else {
+                              addToCart(product, null);
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all inline-flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingCart className="h-3 w-3" />
+                          ADICIONAR
+                        </button>
                       </div>
                     </div>
                   </motion.div>
