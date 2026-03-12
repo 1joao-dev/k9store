@@ -85,16 +85,19 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          username: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           id: string
+          username?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
           id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -121,6 +124,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_username_available: {
+        Args: { p_username: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
