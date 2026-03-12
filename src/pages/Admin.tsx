@@ -126,6 +126,32 @@ export default function Admin() {
     fetchAll();
   };
 
+  // Plans CRUD
+  const openPlansManager = async (product: Product) => {
+    setManagingPlansFor(product);
+    const { data } = await supabase.from("product_plans").select("*").eq("product_id", product.id).order("sort_order");
+    setPlans((data || []) as { id: string; name: string; price: number; sort_order: number }[]);
+    setNewPlanName("");
+    setNewPlanPrice("");
+  };
+
+  const addPlan = async () => {
+    if (!managingPlansFor || !newPlanName.trim() || !newPlanPrice.trim()) return;
+    await supabase.from("product_plans").insert({
+      product_id: managingPlansFor.id,
+      name: newPlanName.trim(),
+      price: parseFloat(newPlanPrice),
+      sort_order: plans.length,
+    });
+    openPlansManager(managingPlansFor);
+  };
+
+  const deletePlan = async (planId: string) => {
+    if (!managingPlansFor) return;
+    await supabase.from("product_plans").delete().eq("id", planId);
+    openPlansManager(managingPlansFor);
+  };
+
   // Giveaway CRUD
   const openGiveawayForm = (giveaway?: Giveaway) => {
     if (giveaway) {
