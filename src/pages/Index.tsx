@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import logo from "@/assets/k9-logo.png";
 
 const SECTIONS = [
@@ -118,9 +119,9 @@ const Index = () => {
             <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
               <ShoppingCart className="h-4 w-4" />
             </button>
-            <button className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
+            <Link to="/login" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
               Entrar
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
