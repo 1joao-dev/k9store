@@ -37,9 +37,10 @@ type TicketItem = {
 
 export default function Admin() {
   const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
-  const [tab, setTab] = useState<"products" | "giveaways">("products");
+  const [tab, setTab] = useState<"products" | "giveaways" | "tickets">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
+  const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Product form
