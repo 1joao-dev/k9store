@@ -16,7 +16,7 @@ const SECTIONS = [
 ];
 
 const STATS = [
-  { value: "0", label: "Clientes atendidos" },
+  { value: "3K+", label: "Clientes atendidos" },
   { value: "99.2%", label: "Taxa de entrega" },
   { value: "<30s", label: "Tempo médio" },
   { value: "5★", label: "Avaliação média" },
