@@ -101,10 +101,11 @@ export default function Admin() {
       setPTags(product.tags.join(", "));
       setPBadge(product.badge || "");
       setPSales(product.sales || "");
+      setPDescription(product.description || "");
       setPImagePreview(product.image_url || null);
     } else {
       setEditingProduct(null);
-      setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales("");
+      setPName(""); setPPrice(""); setPTags(""); setPBadge(""); setPSales(""); setPDescription("");
       setPImagePreview(null);
     }
     setPImageFile(null);
