@@ -37,6 +37,13 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
+type Plan = {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -44,6 +51,7 @@ type Product = {
   tags: string[];
   badge: string | null;
   sales: string | null;
+  plans?: Plan[];
 };
 
 type Giveaway = {
@@ -60,6 +68,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
+  const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
   const { user, isAdmin, signOut, profile } = useAuth();
 
   useEffect(() => {
@@ -79,11 +88,19 @@ const Index = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [prodRes, giveRes] = await Promise.all([
+      const [prodRes, giveRes, plansRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
+        supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
       ]);
-      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (prodRes.data && plansRes.data) {
+        const plans = plansRes.data as Plan[];
+        const prods = (prodRes.data as Product[]).map(p => ({
+          ...p,
+          plans: plans.filter(pl => pl.product_id === p.id),
+        }));
+        setProducts(prods);
+      }
       if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
     };
     fetchData();
@@ -260,12 +277,51 @@ const Index = () => {
                         <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
                       )}
                     </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <p className="text-lg font-bold text-primary">R${product.price.toFixed(2).replace('.', ',')}</p>
-                      <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
-                        Comprar
-                      </button>
-                    </div>
+                    {/* Plans */}
+                    {product.plans && product.plans.length > 0 ? (
+                      <div className="mt-3 space-y-1.5">
+                        <p className="text-[10px] text-muted-foreground font-medium">Escolha o plano:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {product.plans.map(plan => {
+                            const isSelected = selectedPlans[product.id] === plan.id;
+                            return (
+                              <button
+                                key={plan.id}
+                                onClick={() => setSelectedPlans(prev => ({ ...prev, [product.id]: plan.id }))}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                                  isSelected
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-primary/20"
+                                }`}
+                              >
+                                {plan.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-lg font-bold text-primary">
+                            {selectedPlans[product.id]
+                              ? `R$${product.plans.find(p => p.id === selectedPlans[product.id])!.price.toFixed(2).replace('.', ',')}`
+                              : `A partir de R$${Math.min(...product.plans.map(p => p.price)).toFixed(2).replace('.', ',')}`
+                            }
+                          </p>
+                          <button
+                            disabled={!selectedPlans[product.id]}
+                            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all disabled:opacity-30"
+                          >
+                            Comprar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex items-center justify-between">
+                        <p className="text-lg font-bold text-primary">R${product.price.toFixed(2).replace('.', ',')}</p>
+                        <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
+                          Comprar
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>
