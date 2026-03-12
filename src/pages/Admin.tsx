@@ -142,6 +142,7 @@ export default function Admin() {
       tags: pTags.split(",").map(t => t.trim().toUpperCase()).filter(Boolean),
       badge: pBadge.trim() || null,
       sales: pSales.trim() || null,
+      description: pDescription.trim() || null,
       image_url,
     };
     if (editingProduct) {
