@@ -13,6 +13,7 @@ type Product = {
   badge: string | null;
   sales: string | null;
   image_url: string | null;
+  description: string | null;
 };
 
 type Giveaway = {
