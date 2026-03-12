@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/k9-logo.png";
 
 const SECTIONS = [
@@ -12,35 +13,11 @@ const SECTIONS = [
   { id: "ticket", label: "Ticket" },
 ];
 
-const PRODUCTS = [
-  { name: "Conta Hytale", price: "R$25,00", tags: ["HYTALE", "SANDBOX"], badge: "3 variantes", sales: "1.2k vendas" },
-  { name: "Conta Steam", price: "R$15,00", tags: ["STEAM", "FIVEM"], badge: "5+ jogos", sales: "3.8k vendas" },
-  { name: "RedEngine Spoofer", price: "R$45,00", tags: ["FIVEM", "SPOOFER"], badge: "Vitalício", sales: "890 vendas" },
-  { name: "Aurora Menu", price: "R$89,00", tags: ["FIVEM", "MOD MENU"], badge: "Exclusivo", sales: "2.1k vendas" },
-  { name: "Conta Rockstar", price: "R$30,00", tags: ["GTA", "RDR2"], badge: "Full Access", sales: "1.5k vendas" },
-  { name: "Discord Nitro", price: "R$19,00", tags: ["DISCORD", "BOOST"], badge: "1 mês", sales: "4.2k vendas" },
-];
-
 const STATS = [
-  { value: "3k+", label: "Clientes atendidos" },
+  { value: "0", label: "Clientes atendidos" },
   { value: "99.2%", label: "Taxa de entrega" },
   { value: "<30s", label: "Tempo médio" },
-  { value: "4.9★", label: "Avaliação média" },
-];
-
-const REVIEWS = [
-  { text: "Essa loja é boa pra caralho", user: "deuszeus", product: "Avaliação geral", rating: 5 },
-  { text: "VEIO COM RED DEAD 2, MUITO OBRIGADOOOOO", user: "GuaxinimLoco", product: "Steam p/ Fivem", rating: 5 },
-  { text: "Legalzin a steam, entrega rápida demais", user: "deuszeus", product: "Steam p/ Fivem", rating: 5 },
-  { text: "Mt bom esse spoofer, recomendo", user: "deuszeus", product: "RedEngine Spoofer", rating: 5 },
-  { text: "Melhor loja que já comprei, entrega instantânea", user: "RafaGamer", product: "Conta Hytale", rating: 5 },
-  { text: "Suporte top, resolveram tudo rápido", user: "PedroMods", product: "Aurora Menu", rating: 4 },
-];
-
-const GIVEAWAYS = [
-  { title: "Sorteio Conta Steam", entries: 342, endsIn: "2 dias", prize: "Steam Full Access", hot: true },
-  { title: "RedEngine Lifetime", entries: 128, endsIn: "5 dias", prize: "Spoofer Vitalício", hot: false },
-  { title: "Hytale Cursebreaker", entries: 567, endsIn: "1 dia", prize: "Conta Cursebreaker", hot: true },
+  { value: "5★", label: "Avaliação média" },
 ];
 
 const TOOLS_LIST = [
@@ -58,8 +35,29 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  tags: string[];
+  badge: string | null;
+  sales: string | null;
+};
+
+type Giveaway = {
+  id: string;
+  title: string;
+  prize: string;
+  entries: number;
+  ends_in: string | null;
+  hot: boolean;
+  active: boolean;
+};
+
 const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,6 +72,18 @@ const Index = () => {
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [prodRes, giveRes] = await Promise.all([
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
+      ]);
+      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
+    };
+    fetchData();
   }, []);
 
   const scrollTo = (id: string) => {
@@ -117,19 +127,17 @@ const Index = () => {
 
       {/* Hero */}
       <section id="home" className="relative min-h-screen flex items-center justify-center pt-14">
-        {/* Grid BG */}
         <div className="absolute inset-0 opacity-[0.04]" style={{
           backgroundImage: `linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.3) 1px, transparent 1px)`,
           backgroundSize: "60px 60px"
         }} />
-        {/* Radial glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
 
         <div className="relative text-center max-w-3xl mx-auto px-6">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Mais de 3.000 clientes atendidos
+              K9 Store — Produtos Digitais
             </motion.div>
 
             <motion.img variants={fadeUp} src={logo} alt="K9" className="h-24 w-24 rounded-3xl mx-auto mb-8 k9-glow" />
@@ -193,64 +201,50 @@ const Index = () => {
                 <h2 className="text-2xl md:text-3xl font-bold">
                   Catálogo <span className="text-primary">em destaque</span>
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">Produtos mais vendidos da semana</p>
+                <p className="text-sm text-muted-foreground mt-1">Produtos disponíveis</p>
               </div>
-              <button className="hidden md:inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
-                Ver todos <ArrowRight className="h-3 w-3" />
-              </button>
             </motion.div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PRODUCTS.map((product, i) => (
-                <motion.div
-                  key={product.name}
-                  variants={fadeUp}
-                  className="group bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Gamepad2 className="h-5 w-5 text-primary" />
+            {products.length === 0 ? (
+              <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-12 text-center">
+                <Package className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-sm font-medium text-muted-foreground">Nenhum produto disponível no momento</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Novos produtos serão adicionados em breve!</p>
+              </motion.div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {products.map((product) => (
+                  <motion.div
+                    key={product.id}
+                    variants={fadeUp}
+                    className="group bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Gamepad2 className="h-5 w-5 text-primary" />
+                      </div>
+                      {product.sales && <span className="text-[10px] text-muted-foreground">{product.sales}</span>}
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{product.sales}</span>
-                  </div>
-                  <h3 className="font-semibold text-sm">{product.name}</h3>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {product.tags.map(tag => (
-                      <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
-                    ))}
-                    <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <p className="text-lg font-bold text-primary">{product.price}</p>
-                    <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
-                      Comprar
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Social proof ticker */}
-      <section className="py-6 border-y border-border bg-card/30">
-        <div className="overflow-hidden">
-          <div className="flex animate-scroll-left whitespace-nowrap" style={{ width: "200%" }}>
-            {[...Array(2)].map((_, dupi) => (
-              <div key={dupi} className="flex items-center gap-8 px-4">
-                {REVIEWS.map((r, i) => (
-                  <div key={`${dupi}-${i}`} className="inline-flex items-center gap-3 text-sm">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0">
-                      {r.user[0]}
+                    <h3 className="font-semibold text-sm">{product.name}</h3>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {product.tags.map(tag => (
+                        <span key={tag} className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-secondary text-muted-foreground uppercase">{tag}</span>
+                      ))}
+                      {product.badge && (
+                        <span className="text-[9px] tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary uppercase">{product.badge}</span>
+                      )}
                     </div>
-                    <span className="text-muted-foreground">"{r.text}"</span>
-                    <span className="text-primary text-xs">— {r.user}</span>
-                  </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className="text-lg font-bold text-primary">R${product.price.toFixed(2).replace('.', ',')}</p>
+                      <button className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:brightness-110 transition-all opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
+                        Comprar
+                      </button>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
-            ))}
-          </div>
+            )}
+          </motion.div>
         </div>
       </section>
 
@@ -269,7 +263,7 @@ const Index = () => {
                 { icon: ShieldCheck, title: "Checkout seguro", desc: "Pagamento protegido com múltiplos métodos aceitos." },
                 { icon: Clock, title: "Suporte 24/7", desc: "Time pronto pra te ajudar a qualquer momento." },
                 { icon: Package, title: "Catálogo curado", desc: "Apenas produtos testados e aprovados entram na loja." },
-              ].map(({ icon: Icon, title, desc }, i) => (
+              ].map(({ icon: Icon, title, desc }) => (
                 <motion.div
                   key={title}
                   variants={fadeUp}
@@ -299,40 +293,48 @@ const Index = () => {
                 Ganhe produtos <span className="text-primary">de graça</span>
               </h2>
             </motion.div>
-            <div className="grid md:grid-cols-3 gap-4">
-              {GIVEAWAYS.map((g, i) => (
-                <motion.div
-                  key={i}
-                  variants={fadeUp}
-                  className="bg-card border border-border rounded-xl p-5 relative overflow-hidden hover:border-primary/30 transition-all"
-                >
-                  {g.hot && (
-                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold uppercase">
-                      🔥 Popular
+
+            {giveaways.length === 0 ? (
+              <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-12 text-center">
+                <Gift className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-sm font-medium text-muted-foreground">Nenhum sorteio ativo no momento</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Fique de olho, novos sorteios serão adicionados em breve!</p>
+              </motion.div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-4">
+                {giveaways.map((g) => (
+                  <motion.div
+                    key={g.id}
+                    variants={fadeUp}
+                    className="bg-card border border-border rounded-xl p-5 relative overflow-hidden hover:border-primary/30 transition-all"
+                  >
+                    {g.hot && (
+                      <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold uppercase">
+                        🔥 Popular
+                      </div>
+                    )}
+                    <Gift className="h-5 w-5 text-primary mb-3" />
+                    <h3 className="font-semibold text-sm mb-1">{g.title}</h3>
+                    <p className="text-xs text-muted-foreground mb-4">Prêmio: {g.prize}</p>
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-4">
+                      <span>{g.entries} participantes</span>
+                      {g.ends_in && <span>Encerra em {g.ends_in}</span>}
                     </div>
-                  )}
-                  <Gift className="h-5 w-5 text-primary mb-3" />
-                  <h3 className="font-semibold text-sm mb-1">{g.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-4">Prêmio: {g.prize}</p>
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-4">
-                    <span>{g.entries} participantes</span>
-                    <span>Encerra em {g.endsIn}</span>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full h-1 rounded-full bg-secondary mb-4">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(g.entries / 6, 100)}%` }} />
-                  </div>
-                  <button className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
-                    Participar agora
-                  </button>
-                </motion.div>
-              ))}
-            </div>
+                    <div className="w-full h-1 rounded-full bg-secondary mb-4">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(g.entries / 6, 100)}%` }} />
+                    </div>
+                    <button className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
+                      Participar agora
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
 
-      {/* Avaliações + Feedback */}
+      {/* Feedback */}
       <section id="feedback" className="py-20 border-t border-border">
         <div className="max-w-6xl mx-auto px-5">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
@@ -340,29 +342,8 @@ const Index = () => {
               <h2 className="text-2xl md:text-3xl font-bold">
                 O que dizem <span className="text-primary">nossos clientes</span>
               </h2>
-              <p className="text-sm text-muted-foreground mt-2">Veja avaliações reais e deixe a sua também</p>
+              <p className="text-sm text-muted-foreground mt-2">Deixe sua avaliação</p>
             </motion.div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-              {REVIEWS.map((r, i) => (
-                <motion.div key={i} variants={fadeUp} className="bg-card border border-border rounded-xl p-5">
-                  <div className="flex gap-0.5 mb-3">
-                    {[...Array(r.rating)].map((_, j) => (
-                      <Star key={j} className="h-3 w-3 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-foreground mb-4 leading-relaxed">"{r.text}"</p>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                      {r.user[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold">{r.user}</p>
-                      <p className="text-[10px] text-muted-foreground">{r.product}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
             <motion.div variants={fadeUp} className="max-w-lg mx-auto">
               <div className="text-center mb-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium">
@@ -400,7 +381,6 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
-
 
       {/* Ticket */}
       <section id="ticket" className="py-20 border-t border-border">
@@ -573,7 +553,6 @@ function TicketForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim() || !category || description.trim().length < 10 || !email.trim()) return;
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return;
     setSent(true);
