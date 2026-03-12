@@ -79,7 +79,30 @@ const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   const [selectedPlans, setSelectedPlans] = useState<Record<string, string>>({});
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
   const { user, isAdmin, signOut, profile } = useAuth();
+
+  const addToCart = (product: Product, planId: string | null) => {
+    const plan = planId ? product.plans?.find(p => p.id === planId) : null;
+    const price = plan ? plan.price : product.price;
+    setCart(prev => [...prev, {
+      productId: product.id,
+      productName: product.name,
+      planId,
+      planName: plan?.name || null,
+      price,
+      image_url: product.image_url,
+    }]);
+    setSelectedProduct(null);
+  };
+
+  const removeFromCart = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   useEffect(() => {
     const handleScroll = () => {
