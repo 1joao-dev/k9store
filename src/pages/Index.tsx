@@ -1,4 +1,5 @@
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, TrendingUp, Award, ShoppingCart, Globe } from "lucide-react";
+// K9 branding logo
 import logo from "@/assets/k9-logo.png";
 
 const NAV_ITEMS = ["Home", "Store", "Giveaways", "Tools"];
