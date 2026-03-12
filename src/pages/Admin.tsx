@@ -398,11 +398,11 @@ export default function Admin() {
                   </div>
                   <button
                     onClick={saveProduct}
-                    disabled={!pName.trim() || !pPrice.trim()}
+                    disabled={!pName.trim() || !pPrice.trim() || uploading}
                     className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
                   >
                     <Save className="h-3.5 w-3.5" />
-                    {editingProduct ? "Salvar alterações" : "Adicionar produto"}
+                    {uploading ? "Enviando..." : editingProduct ? "Salvar alterações" : "Adicionar produto"}
                   </button>
                 </div>
               </div>
