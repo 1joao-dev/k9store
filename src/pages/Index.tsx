@@ -508,16 +508,9 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mt-2">Utilitários grátis para a comunidade</p>
             </motion.div>
             <div className="grid md:grid-cols-3 gap-4">
-              {TOOLS_LIST.map((tool, i) => (
-                <motion.div key={i} variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors group">
-                  <tool.icon className="h-5 w-5 text-primary mb-3" />
-                  <h3 className="text-sm font-semibold mb-1">{tool.name}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">{tool.desc}</p>
-                  <button className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-medium hover:bg-secondary transition-colors">
-                    Usar agora
-                  </button>
-                </motion.div>
-              ))}
+              <IpLookupTool />
+              <HwidCheckerTool />
+              <SteamCheckerTool />
             </div>
           </motion.div>
         </div>
