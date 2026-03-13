@@ -631,6 +631,95 @@ export default function Admin() {
                 </div>
               </div>
             )}
+
+            {/* Resources Manager Modal */}
+            {managingResourcesFor && (
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg space-y-4 max-h-[85vh] overflow-y-auto">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-bold">Recursos — {managingResourcesFor.name}</h2>
+                      <p className="text-[10px] text-muted-foreground">Tutoriais, downloads e fix de erros</p>
+                    </div>
+                    <button onClick={() => setManagingResourcesFor(null)} className="text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Existing resources */}
+                  {resources.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {resources.map(r => (
+                        <div key={r.id} className="flex items-center justify-between bg-secondary/50 rounded-lg px-3 py-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {r.type === "tutorial" && <BookOpen className="h-3 w-3 text-primary flex-shrink-0" />}
+                            {r.type === "download" && <Download className="h-3 w-3 text-primary flex-shrink-0" />}
+                            {r.type === "fix" && <Bug className="h-3 w-3 text-primary flex-shrink-0" />}
+                            <div className="min-w-0">
+                              <span className="text-xs font-medium truncate block">{r.title}</span>
+                              <span className="text-[9px] text-muted-foreground uppercase">{r.type}</span>
+                            </div>
+                          </div>
+                          <button onClick={() => deleteResource(r.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/60 text-center py-3">Nenhum recurso cadastrado</p>
+                  )}
+
+                  {/* Add new resource */}
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <p className="text-[11px] font-medium text-muted-foreground">Adicionar recurso</p>
+                    <div className="flex gap-1.5">
+                      {([
+                        { key: "tutorial" as const, label: "Tutorial", icon: <BookOpen className="h-3 w-3" /> },
+                        { key: "download" as const, label: "Download", icon: <Download className="h-3 w-3" /> },
+                        { key: "fix" as const, label: "Fix Erro", icon: <Bug className="h-3 w-3" /> },
+                      ]).map(t => (
+                        <button
+                          key={t.key}
+                          onClick={() => setNewResType(t.key)}
+                          className={`px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
+                            newResType === t.key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {t.icon} {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      value={newResTitle}
+                      onChange={e => setNewResTitle(e.target.value)}
+                      placeholder="Título do recurso"
+                      className={inputClass}
+                    />
+                    <textarea
+                      value={newResContent}
+                      onChange={e => setNewResContent(e.target.value)}
+                      placeholder="Conteúdo / instruções (opcional)"
+                      rows={3}
+                      className={`${inputClass} resize-none`}
+                    />
+                    <input
+                      value={newResUrl}
+                      onChange={e => setNewResUrl(e.target.value)}
+                      placeholder="URL do link / download (opcional)"
+                      className={inputClass}
+                    />
+                    <button
+                      onClick={addResource}
+                      disabled={!newResTitle.trim()}
+                      className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    >
+                      <Plus className="h-3 w-3" /> Adicionar recurso
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
