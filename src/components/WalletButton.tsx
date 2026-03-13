@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, X, Loader2, ExternalLink } from "lucide-react";
+import { Wallet, X, Loader2, CheckCircle, Copy } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
 
 const DEPOSIT_VALUES = [5, 10, 25, 50, 100];
@@ -11,14 +11,19 @@ export function WalletButton() {
   const [customAmount, setCustomAmount] = useState("");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleDeposit = async (amount: number) => {
     if (amount < 1) return;
     setProcessing(true);
     setError("");
+    setPixData(null);
     try {
-      const result = await createDeposit(amount);
-      if (result.init_point) {
+      const result = await createDeposit(amount, "pix");
+      if (result.qr_code_base64) {
+        setPixData({ qr_code: result.qr_code, qr_code_base64: result.qr_code_base64 });
+      } else if (result.init_point) {
         window.open(result.init_point, "_blank");
         setShowModal(false);
       }
@@ -28,10 +33,25 @@ export function WalletButton() {
     setProcessing(false);
   };
 
+  const copyPixCode = () => {
+    if (pixData?.qr_code) {
+      navigator.clipboard.writeText(pixData.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const resetModal = () => {
+    setPixData(null);
+    setError("");
+    setCustomAmount("");
+    setCopied(false);
+  };
+
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => { resetModal(); setShowModal(true); }}
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-[11px] font-semibold"
       >
         <Wallet className="h-3.5 w-3.5" />
@@ -71,54 +91,88 @@ export function WalletButton() {
                 </p>
               </div>
 
-              <p className="text-xs text-muted-foreground mb-3">Adicionar saldo via Mercado Pago:</p>
-
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {DEPOSIT_VALUES.map((val) => (
+              {pixData ? (
+                <div className="space-y-3">
                   <button
-                    key={val}
-                    disabled={processing}
-                    onClick={() => handleDeposit(val)}
-                    className="py-2.5 rounded-lg border border-border bg-secondary/30 text-xs font-semibold hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50"
+                    onClick={() => setPixData(null)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    R$ {val}
+                    ← Voltar
                   </button>
-                ))}
-              </div>
-
-              <div className="flex gap-2 mb-3">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="0,00"
-                    value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
-                    className="w-full py-2.5 pl-9 pr-3 rounded-lg border border-border bg-secondary/30 text-xs font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
-                  />
+                  <div className="bg-secondary/30 border border-border rounded-xl p-4 text-center space-y-3">
+                    <p className="text-xs font-semibold">Escaneie o QR Code para depositar</p>
+                    <div className="flex justify-center">
+                      <img
+                        src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                        alt="QR Code Pix"
+                        className="w-44 h-44 rounded-lg"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Ou copie o código Pix:</p>
+                    <button
+                      onClick={copyPixCode}
+                      className="w-full py-2 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
+                    >
+                      {copied ? (
+                        <><CheckCircle className="h-3 w-3 text-green-400" /> Copiado!</>
+                      ) : (
+                        <><Copy className="h-3 w-3" /> Copiar código Pix</>
+                      )}
+                    </button>
+                    <p className="text-[10px] text-muted-foreground/60">O saldo será creditado automaticamente após o pagamento.</p>
+                  </div>
                 </div>
-                {customAmount && Number(customAmount) >= 1 && (
-                  <button
-                    disabled={processing}
-                    onClick={() => handleDeposit(Number(customAmount))}
-                    className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
-                  >
-                    {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
-                    Depositar
-                  </button>
-                )}
-              </div>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground mb-3">Adicionar saldo via Pix:</p>
 
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {DEPOSIT_VALUES.map((val) => (
+                      <button
+                        key={val}
+                        disabled={processing}
+                        onClick={() => handleDeposit(val)}
+                        className="py-2.5 rounded-lg border border-border bg-secondary/30 text-xs font-semibold hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50"
+                      >
+                        R$ {val}
+                      </button>
+                    ))}
+                  </div>
 
-              {processing && (
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Redirecionando para o Mercado Pago...
-                </div>
+                  <div className="flex gap-2 mb-3">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="0,00"
+                        value={customAmount}
+                        onChange={(e) => setCustomAmount(e.target.value)}
+                        className="w-full py-2.5 pl-9 pr-3 rounded-lg border border-border bg-secondary/30 text-xs font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
+                      />
+                    </div>
+                    {customAmount && Number(customAmount) >= 1 && (
+                      <button
+                        disabled={processing}
+                        onClick={() => handleDeposit(Number(customAmount))}
+                        className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                      >
+                        {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                        Depositar
+                      </button>
+                    )}
+                  </div>
+
+                  {processing && (
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Gerando QR Code Pix...
+                    </div>
+                  )}
+
+                  {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
+                </>
               )}
-
-              {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
             </motion.div>
           </motion.div>
         )}
