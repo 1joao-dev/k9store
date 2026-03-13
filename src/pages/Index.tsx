@@ -253,8 +253,119 @@ const SteamCheckerTool = () => {
     </motion.div>
   );
 };
+/* ── Checkout Section ── */
+const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal: number; cart: CartItem[]; setCart: React.Dispatch<React.SetStateAction<CartItem[]>>; setShowCart: React.Dispatch<React.SetStateAction<boolean>> }) => {
+  const { user } = useAuth();
+  const [payMethod, setPayMethod] = useState<"saldo" | "pix" | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState("");
+  const { balance, fetchBalance } = useWallet();
 
-const Index = () => {
+  const handlePayWithBalance = async () => {
+    if (balance < cartTotal) {
+      setError("Saldo insuficiente. Deposite mais créditos na carteira.");
+      return;
+    }
+    setProcessing(true);
+    setError("");
+    try {
+      // Deduct balance via edge function or direct update
+      const { error: rpcError } = await supabase.rpc("add_wallet_balance", {
+        p_user_id: user!.id,
+        p_amount: -cartTotal,
+        p_payment_id: `purchase-${Date.now()}`,
+      });
+      if (rpcError) throw rpcError;
+      await fetchBalance();
+      setCart([]);
+      setShowCart(false);
+    } catch (e: any) {
+      setError(e.message || "Erro ao processar pagamento");
+    }
+    setProcessing(false);
+  };
+
+  const handlePayWithPix = async () => {
+    setProcessing(true);
+    setError("");
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("create-mp-payment", {
+        body: { amount: cartTotal },
+      });
+      if (fnError) throw fnError;
+      if (data?.init_point) {
+        window.open(data.init_point, "_blank");
+      }
+    } catch (e: any) {
+      setError(e.message || "Erro ao criar pagamento");
+    }
+    setProcessing(false);
+  };
+
+  return (
+    <div className="p-5 border-t border-border space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">Total</span>
+        <span className="text-lg font-bold text-primary">R${cartTotal.toFixed(2).replace('.', ',')}</span>
+      </div>
+
+      {!user ? (
+        <Link to="/login" className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-2">
+          Entrar para comprar
+        </Link>
+      ) : !payMethod ? (
+        <div className="space-y-2">
+          <p className="text-[11px] text-muted-foreground">Escolha a forma de pagamento:</p>
+          <button
+            onClick={() => setPayMethod("saldo")}
+            className="w-full py-3 rounded-xl border border-primary/30 bg-primary/5 text-sm font-semibold hover:bg-primary/10 transition-all flex items-center justify-center gap-2"
+          >
+            <Wallet className="h-4 w-4 text-primary" />
+            Saldo (R$ {Number(balance).toFixed(2)})
+          </button>
+          <button
+            onClick={() => setPayMethod("pix")}
+            className="w-full py-3 rounded-xl border border-border bg-secondary/30 text-sm font-semibold hover:bg-secondary/50 transition-all flex items-center justify-center gap-2"
+          >
+            <Zap className="h-4 w-4 text-green-400" />
+            Pix via Mercado Pago
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <button
+            onClick={() => { setPayMethod(null); setError(""); }}
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Voltar
+          </button>
+          {payMethod === "saldo" ? (
+            <button
+              disabled={processing}
+              onClick={handlePayWithBalance}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+              Pagar R${cartTotal.toFixed(2).replace('.', ',')} com saldo
+            </button>
+          ) : (
+            <button
+              disabled={processing}
+              onClick={handlePayWithPix}
+              className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              Pagar R${cartTotal.toFixed(2).replace('.', ',')} com Pix
+            </button>
+          )}
+          {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
