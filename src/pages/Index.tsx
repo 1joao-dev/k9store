@@ -345,93 +345,123 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
 
   return (
     <div className="p-5 border-t border-border space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">Total</span>
-        <span className="text-lg font-bold text-primary">R${cartTotal.toFixed(2).replace('.', ',')}</span>
-      </div>
-
-      {!user ? (
-        <Link to="/login" className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-2">
-          Entrar para comprar
-        </Link>
-      ) : pixData ? (
+      {orderResult ? (
         <div className="space-y-3">
-          <button
-            onClick={() => { setPixData(null); setPayMethod(null); setError(""); }}
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Voltar
-          </button>
-          <div className="bg-secondary/30 border border-border rounded-xl p-4 text-center space-y-3">
-            <p className="text-xs font-semibold">Escaneie o QR Code para pagar</p>
-            <div className="flex justify-center">
-              <img
-                src={`data:image/png;base64,${pixData.qr_code_base64}`}
-                alt="QR Code Pix"
-                className="w-48 h-48 rounded-lg"
-              />
-            </div>
-            <p className="text-[10px] text-muted-foreground">Ou copie o código Pix:</p>
-            <button
-              onClick={copyPixCode}
-              className="w-full py-2 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
-            >
-              {copied ? (
-                <><CheckCircle className="h-3 w-3 text-green-400" /> Copiado!</>
-              ) : (
-                <><ExternalLink className="h-3 w-3" /> Copiar código Pix</>
-              )}
-            </button>
-            <p className="text-[10px] text-muted-foreground/60">O saldo será creditado automaticamente após o pagamento.</p>
+          <div className="flex items-center gap-2 text-primary">
+            <CheckCircle className="h-5 w-5" />
+            <span className="text-sm font-bold">Pedido realizado com sucesso!</span>
           </div>
-        </div>
-      ) : !payMethod ? (
-        <div className="space-y-2">
-          <p className="text-[11px] text-muted-foreground">Escolha a forma de pagamento:</p>
+          {orderResult.map((r, i) => (
+            <div key={i} className="bg-secondary/30 border border-border rounded-xl p-3 space-y-1">
+              <p className="text-xs font-semibold">{r.productName}{r.planName ? ` — ${r.planName}` : ''}</p>
+              {r.content ? (
+                <div className="bg-background/50 rounded-lg p-2">
+                  <p className="text-[10px] text-muted-foreground mb-1">Seu produto:</p>
+                  <p className="text-xs font-mono text-primary break-all select-all">{r.content}</p>
+                </div>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">Sem estoque disponível no momento. Entre em contato com o suporte.</p>
+              )}
+            </div>
+          ))}
           <button
-            onClick={() => setPayMethod("saldo")}
-            className="w-full py-3 rounded-xl border border-primary/30 bg-primary/5 text-sm font-semibold hover:bg-primary/10 transition-all flex items-center justify-center gap-2"
+            onClick={() => { setOrderResult(null); setShowCart(false); setPayMethod(null); }}
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all"
           >
-            <Wallet className="h-4 w-4 text-primary" />
-            Saldo (R$ {Number(balance).toFixed(2)})
-          </button>
-          <button
-            onClick={() => { setPayMethod("pix"); }}
-            className="w-full py-3 rounded-xl border border-border bg-secondary/30 text-sm font-semibold hover:bg-secondary/50 transition-all flex items-center justify-center gap-2"
-          >
-            <Zap className="h-4 w-4 text-green-400" />
-            Pix via Mercado Pago
+            Fechar
           </button>
         </div>
       ) : (
-        <div className="space-y-2">
-          <button
-            onClick={() => { setPayMethod(null); setError(""); }}
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Voltar
-          </button>
-          {payMethod === "saldo" ? (
-            <button
-              disabled={processing}
-              onClick={handlePayWithBalance}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-              Pagar R${cartTotal.toFixed(2).replace('.', ',')} com saldo
-            </button>
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">Total</span>
+            <span className="text-lg font-bold text-primary">R${cartTotal.toFixed(2).replace('.', ',')}</span>
+          </div>
+
+          {!user ? (
+            <Link to="/login" className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-2">
+              Entrar para comprar
+            </Link>
+          ) : pixData ? (
+            <div className="space-y-3">
+              <button
+                onClick={() => { setPixData(null); setPayMethod(null); setError(""); }}
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Voltar
+              </button>
+              <div className="bg-secondary/30 border border-border rounded-xl p-4 text-center space-y-3">
+                <p className="text-xs font-semibold">Escaneie o QR Code para pagar</p>
+                <div className="flex justify-center">
+                  <img
+                    src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                    alt="QR Code Pix"
+                    className="w-48 h-48 rounded-lg"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground">Ou copie o código Pix:</p>
+                <button
+                  onClick={copyPixCode}
+                  className="w-full py-2 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
+                >
+                  {copied ? (
+                    <><CheckCircle className="h-3 w-3 text-green-400" /> Copiado!</>
+                  ) : (
+                    <><ExternalLink className="h-3 w-3" /> Copiar código Pix</>
+                  )}
+                </button>
+                <p className="text-[10px] text-muted-foreground/60">O saldo será creditado automaticamente após o pagamento.</p>
+              </div>
+            </div>
+          ) : !payMethod ? (
+            <div className="space-y-2">
+              <p className="text-[11px] text-muted-foreground">Escolha a forma de pagamento:</p>
+              <button
+                onClick={() => setPayMethod("saldo")}
+                className="w-full py-3 rounded-xl border border-primary/30 bg-primary/5 text-sm font-semibold hover:bg-primary/10 transition-all flex items-center justify-center gap-2"
+              >
+                <Wallet className="h-4 w-4 text-primary" />
+                Saldo (R$ {Number(balance).toFixed(2)})
+              </button>
+              <button
+                onClick={() => { setPayMethod("pix"); }}
+                className="w-full py-3 rounded-xl border border-border bg-secondary/30 text-sm font-semibold hover:bg-secondary/50 transition-all flex items-center justify-center gap-2"
+              >
+                <Zap className="h-4 w-4 text-green-400" />
+                Pix via Mercado Pago
+              </button>
+            </div>
           ) : (
-            <button
-              disabled={processing}
-              onClick={handlePayWithPix}
-              className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              Gerar QR Code Pix — R${cartTotal.toFixed(2).replace('.', ',')}
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => { setPayMethod(null); setError(""); }}
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Voltar
+              </button>
+              {payMethod === "saldo" ? (
+                <button
+                  disabled={processing}
+                  onClick={handlePayWithBalance}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+                  Pagar R${cartTotal.toFixed(2).replace('.', ',')} com saldo
+                </button>
+              ) : (
+                <button
+                  disabled={processing}
+                  onClick={handlePayWithPix}
+                  className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                  Gerar QR Code Pix — R${cartTotal.toFixed(2).replace('.', ',')}
+                </button>
+              )}
+              {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
+            </div>
           )}
-          {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
-        </div>
+        </>
       )}
     </div>
   );
