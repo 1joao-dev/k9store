@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, X, Loader2, CheckCircle, Copy } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
