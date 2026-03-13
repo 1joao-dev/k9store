@@ -276,7 +276,7 @@ const SteamCheckerTool = () => {
   );
 };
 
-
+const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
