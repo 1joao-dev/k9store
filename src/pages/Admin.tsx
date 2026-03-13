@@ -550,6 +550,9 @@ export default function Admin() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      <button onClick={() => openResourcesManager(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Tutoriais & Downloads">
+                        <BookOpen className="h-3.5 w-3.5" />
+                      </button>
                       <button onClick={() => openPlansManager(p)} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Gerenciar planos">
                         <List className="h-3.5 w-3.5" />
                       </button>
