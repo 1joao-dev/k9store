@@ -47,6 +47,63 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          created_at: string
+          delivered_content: string | null
+          id: string
+          payment_method: string
+          plan_id: string | null
+          plan_name: string | null
+          price: number
+          product_id: string
+          product_name: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_content?: string | null
+          id?: string
+          payment_method?: string
+          plan_id?: string | null
+          plan_name?: string | null
+          price?: number
+          product_id: string
+          product_name: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_content?: string | null
+          id?: string
+          payment_method?: string
+          plan_id?: string | null
+          plan_name?: string | null
+          price?: number
+          product_id?: string
+          product_name?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "product_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_plans: {
         Row: {
           created_at: string
@@ -75,6 +132,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_plans_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_stock: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          plan_id: string | null
+          product_id: string
+          used: boolean
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          plan_id?: string | null
+          product_id: string
+          used?: boolean
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          plan_id?: string | null
+          product_id?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_stock_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "product_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_stock_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -303,6 +402,10 @@ export type Database = {
       check_username_available: {
         Args: { p_username: string }
         Returns: boolean
+      }
+      claim_stock_item: {
+        Args: { p_plan_id: string; p_product_id: string }
+        Returns: string
       }
       ensure_wallet: { Args: { p_user_id: string }; Returns: undefined }
       has_admin_access: { Args: { _user_id: string }; Returns: boolean }
