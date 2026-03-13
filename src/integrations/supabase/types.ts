@@ -139,6 +139,47 @@ export type Database = {
           },
         ]
       }
+      product_resources: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          product_id: string
+          sort_order: number
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          sort_order?: number
+          title: string
+          type: string
+          url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          sort_order?: number
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_resources_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_stock: {
         Row: {
           content: string
