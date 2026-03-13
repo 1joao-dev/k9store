@@ -86,6 +86,15 @@ export default function Admin() {
   const [respondingTicket, setRespondingTicket] = useState<TicketItem | null>(null);
   const [ticketResponse, setTicketResponse] = useState("");
 
+  // Resources management
+  type ResourceItem = { id: string; type: string; title: string; content: string | null; url: string | null; sort_order: number };
+  const [managingResourcesFor, setManagingResourcesFor] = useState<Product | null>(null);
+  const [resources, setResources] = useState<ResourceItem[]>([]);
+  const [newResType, setNewResType] = useState<"tutorial" | "download" | "fix">("tutorial");
+  const [newResTitle, setNewResTitle] = useState("");
+  const [newResContent, setNewResContent] = useState("");
+  const [newResUrl, setNewResUrl] = useState("");
+
   const fetchAll = async () => {
     setLoading(true);
     const [p, g, t, o] = await Promise.all([
