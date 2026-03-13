@@ -212,12 +212,12 @@ const SteamCheckerTool = () => {
     <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors">
       <ShieldCheck className="h-5 w-5 text-primary mb-3" />
       <h3 className="text-sm font-semibold mb-1">Steam Checker</h3>
-      <p className="text-xs text-muted-foreground leading-relaxed mb-3">Valide informações de contas Steam.</p>
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">Valide informações de contas Steam pelo nome de usuário.</p>
       <div className="flex gap-2 mb-3">
         <input
           value={steamId}
           onChange={e => setSteamId(e.target.value)}
-          placeholder="Custom URL ou Steam64 ID"
+          placeholder="Ex: gaben"
           className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
           onKeyDown={e => e.key === "Enter" && check()}
         />
