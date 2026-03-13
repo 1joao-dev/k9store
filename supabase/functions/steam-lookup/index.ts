@@ -35,8 +35,8 @@ serve(async (req) => {
     }
 
     if (text.includes("<error>")) {
-      return new Response(JSON.stringify({ error: "Perfil não encontrado. Use o custom URL ou Steam64 ID." }), {
-        status: 404,
+      return new Response(JSON.stringify({ error: "Perfil não encontrado. Verifique o nome de usuário (custom URL) da Steam." }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

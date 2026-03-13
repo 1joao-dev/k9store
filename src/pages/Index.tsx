@@ -195,12 +195,15 @@ const SteamCheckerTool = () => {
       const res = await supabase.functions.invoke("steam-lookup", {
         body: { steamId: steamId.trim() },
       });
-      if (res.error) {
+      const body = res.data;
+      if (res.error || !body) {
         setError("Erro ao consultar. Tente novamente.");
-      } else if (res.data?.error) {
-        setError(res.data.error);
+      } else if (body.error) {
+        setError(body.error);
+      } else if (!body.name && !body.steamID64) {
+        setError("Perfil não encontrado. Use o custom URL da Steam (ex: gaben).");
       } else {
-        setResult(res.data);
+        setResult(body);
       }
     } catch {
       setError("Erro ao consultar. Tente novamente.");
