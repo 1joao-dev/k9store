@@ -769,7 +769,7 @@ const Index = () => {
       {/* Loja */}
       <section id="store" className="py-20 relative">
         <div className="max-w-6xl mx-auto px-5">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} key={products.length > 0 ? "loaded" : "empty"}>
             <motion.div variants={fadeUp} className="flex items-center justify-between mb-10">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold">
