@@ -130,7 +130,10 @@ export default function Admin() {
       const ext = pImageFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
       const { error } = await supabase.storage.from('product-images').upload(fileName, pImageFile);
-      if (!error) {
+      if (error) {
+        console.error('Upload error:', error);
+        alert("Erro no upload: " + error.message);
+      } else {
         const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
         image_url = urlData.publicUrl;
       }
