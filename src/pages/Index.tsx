@@ -476,6 +476,7 @@ const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [stockCounts, setStockCounts] = useState<Record<string, number>>({});
   const { user, isAdmin, signOut, profile, userRole } = useAuth();
 
   const ROLE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
