@@ -351,36 +351,29 @@ export default function Admin() {
             <img src={logo} alt="K9" className="h-6 w-6 rounded" />
             <span className="font-bold text-sm">Painel <span className="text-primary">Admin</span></span>
           </div>
-          <div className="flex gap-1 bg-secondary/50 rounded-full p-1">
-            <button
-              onClick={() => setTab("products")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Package className="h-3 w-3" /> Produtos
-            </button>
-            <button
-              onClick={() => setTab("giveaways")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "giveaways" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Gift className="h-3 w-3" /> Sorteios
-            </button>
-            <button
-              onClick={() => setTab("tickets")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "tickets" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Ticket className="h-3 w-3" /> Tickets
-              {tickets.filter(t => t.status === "aberto").length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                  {tickets.filter(t => t.status === "aberto").length}
-                </span>
-              )}
-            </button>
+          <div className="flex gap-1 bg-secondary/50 rounded-full p-1 overflow-x-auto">
+            {([
+              { key: "products", icon: <Package className="h-3 w-3" />, label: "Produtos" },
+              { key: "stock", icon: <Database className="h-3 w-3" />, label: "Estoque" },
+              { key: "orders", icon: <ShoppingBag className="h-3 w-3" />, label: "Pedidos" },
+              { key: "giveaways", icon: <Gift className="h-3 w-3" />, label: "Sorteios" },
+              { key: "tickets", icon: <Ticket className="h-3 w-3" />, label: "Tickets" },
+            ] as const).map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key as any)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  tab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.icon} {t.label}
+                {t.key === "tickets" && tickets.filter(tk => tk.status === "aberto").length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                    {tickets.filter(tk => tk.status === "aberto").length}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
           <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
             <LogOut className="h-4 w-4" />
