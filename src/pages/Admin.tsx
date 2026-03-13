@@ -790,6 +790,172 @@ export default function Admin() {
             )}
           </div>
         )}
+
+        {/* Stock Tab */}
+        {tab === "stock" && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-xl font-bold">Estoque</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">Gerencie o estoque digital dos produtos</p>
+            </div>
+
+            {stockProduct ? (
+              <div className="space-y-4">
+                <button onClick={() => setStockProduct(null)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">← Voltar</button>
+                <div className="bg-card border border-border rounded-xl p-4">
+                  <h2 className="text-sm font-bold mb-3">{stockProduct.name} — Estoque</h2>
+
+                  {stockPlans.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[11px] text-muted-foreground mb-2">Filtrar por plano:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => setStockPlanId(null)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${!stockPlanId ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                        >
+                          Todos
+                        </button>
+                        {stockPlans.map((pl: any) => (
+                          <button
+                            key={pl.id}
+                            onClick={() => setStockPlanId(pl.id)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${stockPlanId === pl.id ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                          >
+                            {pl.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add single */}
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      value={newStockContent}
+                      onChange={e => setNewStockContent(e.target.value)}
+                      placeholder="Conteúdo (chave, conta, link...)"
+                      className={inputClass}
+                    />
+                    <button onClick={addStockItem} disabled={!newStockContent.trim()} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 disabled:opacity-40 whitespace-nowrap">
+                      <Plus className="h-3 w-3 inline mr-1" /> Adicionar
+                    </button>
+                  </div>
+
+                  {/* Bulk add */}
+                  <div className="mb-4">
+                    <textarea
+                      value={bulkStockContent}
+                      onChange={e => setBulkStockContent(e.target.value)}
+                      placeholder="Adicionar em massa (um por linha)"
+                      rows={3}
+                      className={`${inputClass} resize-none`}
+                    />
+                    <button onClick={addBulkStock} disabled={!bulkStockContent.trim()} className="mt-2 w-full py-2 rounded-lg bg-secondary border border-border text-xs font-semibold hover:bg-secondary/80 disabled:opacity-40">
+                      Adicionar em massa
+                    </button>
+                  </div>
+
+                  {/* Stock items */}
+                  {(() => {
+                    const filtered = stockPlanId ? stockItems.filter((s: any) => s.plan_id === stockPlanId) : stockItems;
+                    const available = filtered.filter((s: any) => !s.used);
+                    const used = filtered.filter((s: any) => s.used);
+                    return (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          <span className="text-primary font-bold">{available.length}</span> disponível(eis) · <span className="text-muted-foreground">{used.length}</span> usado(s)
+                        </p>
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                          {filtered.map((item: any) => (
+                            <div key={item.id} className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs ${item.used ? 'bg-secondary/30 opacity-50' : 'bg-secondary/50'}`}>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-mono truncate block">{item.content}</span>
+                                {item.used && <span className="text-[9px] text-destructive">Usado</span>}
+                              </div>
+                              {!item.used && (
+                                <button onClick={() => deleteStockItem(item.id)} className="p-1 text-muted-foreground hover:text-destructive ml-2">
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {products.map(p => {
+                  return (
+                    <div key={p.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/30 transition-all" onClick={() => openStockManager(p)}>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                            <Database className="h-4 w-4 text-muted-foreground/30" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-sm font-semibold">{p.name}</h3>
+                          <p className="text-[10px] text-muted-foreground">Clique para gerenciar estoque</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Orders Tab */}
+        {tab === "orders" && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-xl font-bold">Pedidos</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">{orders.length} pedido(s) no total</p>
+            </div>
+            {loading ? (
+              <div className="text-center text-sm text-muted-foreground py-12">Carregando...</div>
+            ) : orders.length === 0 ? (
+              <div className="bg-card border border-border rounded-xl p-12 text-center">
+                <ShoppingBag className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground">Nenhum pedido realizado</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {orders.map((o: any) => (
+                  <div key={o.id} className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-semibold truncate">{o.product_name}</h3>
+                          {o.plan_name && <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">{o.plan_name}</span>}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${o.status === 'completed' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                            {o.status === 'completed' ? 'Entregue' : o.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          R${Number(o.price).toFixed(2).replace('.', ',')} · {o.payment_method} · {new Date(o.created_at).toLocaleDateString("pt-BR")}
+                        </p>
+                        {o.delivered_content && (
+                          <div className="mt-2 p-2 rounded bg-secondary/30 border border-border">
+                            <p className="text-[10px] text-muted-foreground mb-0.5">Conteúdo entregue:</p>
+                            <p className="text-xs font-mono text-primary break-all">{o.delivered_content}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
