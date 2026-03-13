@@ -84,28 +84,32 @@ export function WalletButton() {
                     R$ {val}
                   </button>
                 ))}
-                <div className="relative">
+              </div>
+
+              <div className="flex gap-2 mb-3">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
                   <input
                     type="number"
                     min="1"
-                    placeholder="Outro"
+                    placeholder="0,00"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
-                    className="w-full h-full py-2.5 rounded-lg border border-border bg-secondary/30 text-xs font-semibold text-center placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
+                    className="w-full py-2.5 pl-9 pr-3 rounded-lg border border-border bg-secondary/30 text-xs font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
                   />
                 </div>
+                {customAmount && Number(customAmount) >= 1 && (
+                  <button
+                    disabled={processing}
+                    onClick={() => handleDeposit(Number(customAmount))}
+                    className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
+                    Depositar
+                  </button>
+                )}
               </div>
 
-              {customAmount && Number(customAmount) >= 1 && (
-                <button
-                  disabled={processing}
-                  onClick={() => handleDeposit(Number(customAmount))}
-                  className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
-                >
-                  {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
-                  Depositar R$ {Number(customAmount).toFixed(2)}
-                </button>
-              )}
 
               {processing && (
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
