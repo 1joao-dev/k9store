@@ -612,6 +612,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <BackgroundMusic />
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-2xl border-b border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-5 h-14">
