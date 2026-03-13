@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image, Send, Database, ShoppingBag, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image, Send, Database, ShoppingBag, Loader2, FileText } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
@@ -710,9 +710,21 @@ export default function Admin() {
                       <h2 className="text-sm font-bold truncate">{respondingTicket.subject}</h2>
                       <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
                     </div>
-                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
-                      <X className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {respondingTicket.status !== "fechado" && (
+                        <CloseWithTranscriptButton
+                          ticketId={respondingTicket.id}
+                          subject={respondingTicket.subject}
+                          onClosed={() => {
+                            setRespondingTicket(null);
+                            fetchAll();
+                          }}
+                        />
+                      )}
+                      <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="px-4 py-2 bg-secondary/30 border-b border-border">
                     <p className="text-[10px] text-muted-foreground/60 mb-0.5">Descrição original</p>
@@ -767,7 +779,7 @@ export default function Admin() {
                           >
                             <MessageCircle className="h-3.5 w-3.5" />
                           </button>
-                          {t.status === "aberto" && (
+                          {t.status !== "fechado" && (
                             <button
                               onClick={() => updateTicketStatus(t.id, "fechado")}
                               className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary"
@@ -969,6 +981,64 @@ export default function Admin() {
         )}
       </div>
     </div>
+  );
+}
+
+/* ---- Close with Transcript Button ---- */
+function CloseWithTranscriptButton({ ticketId, subject, onClosed }: { ticketId: string; subject: string; onClosed: () => void }) {
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = async () => {
+    if (!confirm("Fechar este ticket e enviar transcript ao cliente via Discord?")) return;
+    setClosing(true);
+
+    // Fetch all messages
+    const { data: messages } = await supabase
+      .from("ticket_messages")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+
+    // Build transcript text
+    let transcript = "";
+    if (messages && messages.length > 0) {
+      transcript = messages.map((m: any) => {
+        const time = new Date(m.created_at).toLocaleString("pt-BR");
+        const sender = m.sender_type === "admin" ? "🛡️ Admin" : "👤 Cliente";
+        const text = m.message.match(/^\[image\]/) ? "[imagem]" : m.message;
+        return `[${time}] ${sender}: ${text}`;
+      }).join("\n");
+    } else {
+      transcript = "Nenhuma mensagem no chat.";
+    }
+
+    // Get ticket user_id
+    const { data: ticket } = await supabase.from("tickets").select("user_id").eq("id", ticketId).single();
+
+    // Close the ticket
+    await supabase.from("tickets").update({ status: "fechado", updated_at: new Date().toISOString() }).eq("id", ticketId);
+
+    // Send Discord notification with transcript
+    if (ticket?.user_id) {
+      await supabase.functions.invoke("discord-notify", {
+        body: { type: "ticket_closed", user_id: ticket.user_id, data: { subject, transcript } },
+      }).catch(e => console.error("Discord notify error:", e));
+    }
+
+    setClosing(false);
+    onClosed();
+  };
+
+  return (
+    <button
+      onClick={handleClose}
+      disabled={closing}
+      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive text-[11px] font-medium hover:bg-destructive/20 transition-all disabled:opacity-40"
+      title="Fechar com transcript"
+    >
+      {closing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileText className="h-3 w-3" />}
+      Fechar
+    </button>
   );
 }
 

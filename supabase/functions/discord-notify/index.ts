@@ -121,6 +121,7 @@ Deno.serve(async (req) => {
           color: 0xef4444,
           fields: [
             { name: "Assunto", value: data.subject || "—", inline: false },
+            ...(data.transcript ? [{ name: "📋 Transcript", value: data.transcript.slice(0, 1024), inline: false }] : []),
           ],
           footer: { text: "K9 Store — Abra um novo ticket se precisar." },
           timestamp: new Date().toISOString(),
