@@ -84,6 +84,25 @@ Deno.serve(async (req) => {
 
     console.log(`Balance added: R$ ${amount} for user ${ref.user_id}`);
 
+    // Send Discord notification for payment confirmed
+    try {
+      const fnUrl = `${supabaseUrl}/functions/v1/discord-notify`;
+      await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({
+          type: "payment_confirmed",
+          user_id: ref.user_id,
+          data: { amount },
+        }),
+      });
+    } catch (notifyErr) {
+      console.error("Discord notify error:", notifyErr);
+    }
+
     return new Response("OK", { status: 200, headers: corsHeaders });
   } catch (err) {
     console.error("Webhook error:", err);
