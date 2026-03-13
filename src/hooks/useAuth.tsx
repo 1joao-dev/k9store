@@ -75,22 +75,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       setIsRoleLoading(false);
       setProfile(null);
+      setUserRole(null);
       return;
     }
 
     setIsRoleLoading(true);
     
-    // Fetch role and profile in parallel
     Promise.all([
       supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
         .maybeSingle(),
       fetchProfile(user.id),
     ]).then(([roleResult]) => {
-      setIsAdmin(!!roleResult.data);
+      const role = roleResult.data?.role as UserRole ?? null;
+      setUserRole(role);
+      setIsAdmin(role === "admin" || role === "dono");
       setIsRoleLoading(false);
     });
   }, [user?.id]);
