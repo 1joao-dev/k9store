@@ -743,6 +743,31 @@ const Index = () => {
               </div>
             ))}
           </motion.div>
+          {/* Último Vídeo */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.6 }}
+            className="mt-12"
+          >
+            <div className="bg-card/50 backdrop-blur border border-border rounded-2xl p-5 text-center">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-4 flex items-center justify-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Último Vídeo
+              </p>
+              <div className="flex justify-center">
+                <iframe
+                  src="https://www.tiktok.com/embed/v2/7608715092263210261"
+                  className="rounded-xl border border-border"
+                  width="325"
+                  height="578"
+                  allow="encrypted-media"
+                  allowFullScreen
+                  style={{ maxWidth: "100%" }}
+                />
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-muted-foreground/50 cursor-pointer animate-bounce" onClick={() => scrollTo("store")}>
