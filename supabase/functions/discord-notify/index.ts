@@ -142,16 +142,22 @@ Deno.serve(async (req) => {
       case "ticket_closed":
         embed = {
           title: "🔒 Ticket Encerrado",
-          description: `Olá **${username}**! Seu ticket foi encerrado.`,
+          description: `Olá **${username}**! Seu ticket foi encerrado. Confira o transcript abaixo.`,
           color: 0xef4444,
           fields: [
             { name: "Assunto", value: data.subject || "—", inline: false },
-            ...(data.transcript ? [{ name: "📋 Transcript", value: data.transcript.slice(0, 1024), inline: false }] : []),
           ],
           footer: { text: "K9 Store — Abra um novo ticket se precisar." },
           timestamp: new Date().toISOString(),
         };
-        break;
+        // Send transcript as separate plain text messages
+        {
+          const sent = await sendDM(botToken, profile.discord_id, embed, data.transcript || undefined);
+          return new Response(JSON.stringify({ success: sent }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
 
       case "ticket_assumed":
         embed = {
