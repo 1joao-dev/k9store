@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image, Send } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image, Send, Database, ShoppingBag } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
@@ -39,11 +39,20 @@ type TicketItem = {
 
 export default function Admin() {
   const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
-  const [tab, setTab] = useState<"products" | "giveaways" | "tickets">("products");
+  const [tab, setTab] = useState<"products" | "giveaways" | "tickets" | "stock" | "orders">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Stock management
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
+  const [stockPlanId, setStockPlanId] = useState<string | null>(null);
+  const [stockItems, setStockItems] = useState<any[]>([]);
+  const [stockPlans, setStockPlans] = useState<any[]>([]);
+  const [newStockContent, setNewStockContent] = useState("");
+  const [bulkStockContent, setBulkStockContent] = useState("");
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
@@ -79,15 +88,59 @@ export default function Admin() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [p, g, t] = await Promise.all([
+    const [p, g, t, o] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("giveaways").select("*").order("created_at", { ascending: false }),
       supabase.from("tickets").select("*").order("created_at", { ascending: false }),
+      supabase.from("orders").select("*").order("created_at", { ascending: false }),
     ]);
     if (p.data) setProducts(p.data as Product[]);
     if (g.data) setGiveaways(g.data as Giveaway[]);
     if (t.data) setTickets(t.data as TicketItem[]);
+    if (o.data) setOrders(o.data);
     setLoading(false);
+  };
+
+  const openStockManager = async (product: Product) => {
+    setStockProduct(product);
+    setStockPlanId(null);
+    const { data: plans } = await supabase.from("product_plans").select("*").eq("product_id", product.id).order("sort_order");
+    setStockPlans(plans || []);
+    const { data: items } = await supabase.from("product_stock").select("*").eq("product_id", product.id).order("created_at", { ascending: false });
+    setStockItems(items || []);
+    setNewStockContent("");
+    setBulkStockContent("");
+  };
+
+  const addStockItem = async () => {
+    if (!stockProduct || !newStockContent.trim()) return;
+    await supabase.from("product_stock").insert({
+      product_id: stockProduct.id,
+      plan_id: stockPlanId || null,
+      content: newStockContent.trim(),
+    });
+    setNewStockContent("");
+    openStockManager(stockProduct);
+  };
+
+  const addBulkStock = async () => {
+    if (!stockProduct || !bulkStockContent.trim()) return;
+    const lines = bulkStockContent.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+    const items = lines.map(content => ({
+      product_id: stockProduct.id,
+      plan_id: stockPlanId || null,
+      content,
+    }));
+    await supabase.from("product_stock").insert(items);
+    setBulkStockContent("");
+    openStockManager(stockProduct);
+  };
+
+  const deleteStockItem = async (id: string) => {
+    if (!stockProduct) return;
+    await supabase.from("product_stock").delete().eq("id", id);
+    openStockManager(stockProduct);
   };
 
   useEffect(() => { fetchAll(); }, []);
@@ -298,36 +351,29 @@ export default function Admin() {
             <img src={logo} alt="K9" className="h-6 w-6 rounded" />
             <span className="font-bold text-sm">Painel <span className="text-primary">Admin</span></span>
           </div>
-          <div className="flex gap-1 bg-secondary/50 rounded-full p-1">
-            <button
-              onClick={() => setTab("products")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Package className="h-3 w-3" /> Produtos
-            </button>
-            <button
-              onClick={() => setTab("giveaways")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "giveaways" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Gift className="h-3 w-3" /> Sorteios
-            </button>
-            <button
-              onClick={() => setTab("tickets")}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
-                tab === "tickets" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Ticket className="h-3 w-3" /> Tickets
-              {tickets.filter(t => t.status === "aberto").length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                  {tickets.filter(t => t.status === "aberto").length}
-                </span>
-              )}
-            </button>
+          <div className="flex gap-1 bg-secondary/50 rounded-full p-1 overflow-x-auto">
+            {([
+              { key: "products", icon: <Package className="h-3 w-3" />, label: "Produtos" },
+              { key: "stock", icon: <Database className="h-3 w-3" />, label: "Estoque" },
+              { key: "orders", icon: <ShoppingBag className="h-3 w-3" />, label: "Pedidos" },
+              { key: "giveaways", icon: <Gift className="h-3 w-3" />, label: "Sorteios" },
+              { key: "tickets", icon: <Ticket className="h-3 w-3" />, label: "Tickets" },
+            ] as const).map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key as any)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                  tab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.icon} {t.label}
+                {t.key === "tickets" && tickets.filter(tk => tk.status === "aberto").length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                    {tickets.filter(tk => tk.status === "aberto").length}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
           <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground" title="Sair">
             <LogOut className="h-4 w-4" />
@@ -740,6 +786,172 @@ export default function Admin() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Stock Tab */}
+        {tab === "stock" && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-xl font-bold">Estoque</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">Gerencie o estoque digital dos produtos</p>
+            </div>
+
+            {stockProduct ? (
+              <div className="space-y-4">
+                <button onClick={() => setStockProduct(null)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">← Voltar</button>
+                <div className="bg-card border border-border rounded-xl p-4">
+                  <h2 className="text-sm font-bold mb-3">{stockProduct.name} — Estoque</h2>
+
+                  {stockPlans.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[11px] text-muted-foreground mb-2">Filtrar por plano:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => setStockPlanId(null)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${!stockPlanId ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                        >
+                          Todos
+                        </button>
+                        {stockPlans.map((pl: any) => (
+                          <button
+                            key={pl.id}
+                            onClick={() => setStockPlanId(pl.id)}
+                            className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${stockPlanId === pl.id ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                          >
+                            {pl.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add single */}
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      value={newStockContent}
+                      onChange={e => setNewStockContent(e.target.value)}
+                      placeholder="Conteúdo (chave, conta, link...)"
+                      className={inputClass}
+                    />
+                    <button onClick={addStockItem} disabled={!newStockContent.trim()} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 disabled:opacity-40 whitespace-nowrap">
+                      <Plus className="h-3 w-3 inline mr-1" /> Adicionar
+                    </button>
+                  </div>
+
+                  {/* Bulk add */}
+                  <div className="mb-4">
+                    <textarea
+                      value={bulkStockContent}
+                      onChange={e => setBulkStockContent(e.target.value)}
+                      placeholder="Adicionar em massa (um por linha)"
+                      rows={3}
+                      className={`${inputClass} resize-none`}
+                    />
+                    <button onClick={addBulkStock} disabled={!bulkStockContent.trim()} className="mt-2 w-full py-2 rounded-lg bg-secondary border border-border text-xs font-semibold hover:bg-secondary/80 disabled:opacity-40">
+                      Adicionar em massa
+                    </button>
+                  </div>
+
+                  {/* Stock items */}
+                  {(() => {
+                    const filtered = stockPlanId ? stockItems.filter((s: any) => s.plan_id === stockPlanId) : stockItems;
+                    const available = filtered.filter((s: any) => !s.used);
+                    const used = filtered.filter((s: any) => s.used);
+                    return (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          <span className="text-primary font-bold">{available.length}</span> disponível(eis) · <span className="text-muted-foreground">{used.length}</span> usado(s)
+                        </p>
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                          {filtered.map((item: any) => (
+                            <div key={item.id} className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs ${item.used ? 'bg-secondary/30 opacity-50' : 'bg-secondary/50'}`}>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-mono truncate block">{item.content}</span>
+                                {item.used && <span className="text-[9px] text-destructive">Usado</span>}
+                              </div>
+                              {!item.used && (
+                                <button onClick={() => deleteStockItem(item.id)} className="p-1 text-muted-foreground hover:text-destructive ml-2">
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {products.map(p => {
+                  return (
+                    <div key={p.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4 cursor-pointer hover:border-primary/30 transition-all" onClick={() => openStockManager(p)}>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                            <Database className="h-4 w-4 text-muted-foreground/30" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-sm font-semibold">{p.name}</h3>
+                          <p className="text-[10px] text-muted-foreground">Clique para gerenciar estoque</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Orders Tab */}
+        {tab === "orders" && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-xl font-bold">Pedidos</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">{orders.length} pedido(s) no total</p>
+            </div>
+            {loading ? (
+              <div className="text-center text-sm text-muted-foreground py-12">Carregando...</div>
+            ) : orders.length === 0 ? (
+              <div className="bg-card border border-border rounded-xl p-12 text-center">
+                <ShoppingBag className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground">Nenhum pedido realizado</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {orders.map((o: any) => (
+                  <div key={o.id} className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-semibold truncate">{o.product_name}</h3>
+                          {o.plan_name && <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">{o.plan_name}</span>}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${o.status === 'completed' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                            {o.status === 'completed' ? 'Entregue' : o.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          R${Number(o.price).toFixed(2).replace('.', ',')} · {o.payment_method} · {new Date(o.created_at).toLocaleDateString("pt-BR")}
+                        </p>
+                        {o.delivered_content && (
+                          <div className="mt-2 p-2 rounded bg-secondary/30 border border-border">
+                            <p className="text-[10px] text-muted-foreground mb-0.5">Conteúdo entregue:</p>
+                            <p className="text-xs font-mono text-primary break-all">{o.delivered_content}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
