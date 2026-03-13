@@ -664,6 +664,9 @@ const Index = () => {
                       {roleBadge.label}
                     </span>
                   )}
+                  <button onClick={() => setShowProfileSettings(true)} className="p-0.5 text-muted-foreground hover:text-primary transition-colors" title="Configurações">
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
                   <button onClick={signOut} className="p-0.5 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
                     <LogOut className="h-3.5 w-3.5" />
                   </button>
