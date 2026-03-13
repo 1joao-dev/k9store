@@ -288,6 +288,12 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
         payment_method: paymentMethod,
       });
       results.push({ productName: item.productName, planName: item.planName || undefined, content: stockContent });
+      // Discord notification for product delivery
+      sendDiscordNotify("product_delivered", user!.id, {
+        product_name: item.productName,
+        plan_name: item.planName,
+        price: item.price,
+      });
     }
     return results;
   };
