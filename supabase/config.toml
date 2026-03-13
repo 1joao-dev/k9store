@@ -2,3 +2,6 @@ project_id = "pwbunwmttwtlqpsbciux"
 
 [functions.mp-webhook]
 verify_jwt = false
+
+[functions.discord-notify]
+verify_jwt = false
