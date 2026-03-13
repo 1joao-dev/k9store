@@ -756,13 +756,13 @@ const Index = () => {
                 Último Vídeo
               </p>
               <div className="flex justify-center">
-                <iframe
-                  src="https://www.tiktok.com/embed/v2/7608715092263210261"
+                <video
+                  src="/videos/ultimo-video.mp4"
                   className="rounded-xl border border-border"
                   width="325"
-                  height="578"
-                  allow="encrypted-media"
-                  allowFullScreen
+                  controls
+                  playsInline
+                  preload="metadata"
                   style={{ maxWidth: "100%" }}
                 />
               </div>
