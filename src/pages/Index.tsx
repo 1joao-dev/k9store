@@ -895,9 +895,9 @@ const Index = () => {
                 <div className="hidden md:block">
                   <div className="sticky top-24 rounded-2xl overflow-hidden border border-border bg-secondary">
                     {selectedProduct.image_url ? (
-                      <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full aspect-[4/5] object-cover" />
+                      <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full aspect-[4/3] object-cover" />
                     ) : (
-                      <div className="w-full aspect-[4/5] flex items-center justify-center">
+                      <div className="w-full aspect-[4/3] flex items-center justify-center">
                         <Image className="h-16 w-16 text-muted-foreground/15" />
                       </div>
                     )}
