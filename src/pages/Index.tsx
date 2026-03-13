@@ -476,6 +476,7 @@ const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [stockCounts, setStockCounts] = useState<Record<string, number>>({});
   const { user, isAdmin, signOut, profile, userRole } = useAuth();
 
   const ROLE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
@@ -544,10 +545,11 @@ const Index = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [prodRes, giveRes, plansRes] = await Promise.all([
+      const [prodRes, giveRes, plansRes, stockRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
         supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
         supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
+        supabase.rpc("get_stock_counts"),
       ]);
       if (prodRes.data && plansRes.data) {
         const plans = plansRes.data as Plan[];
@@ -558,6 +560,19 @@ const Index = () => {
         setProducts(prods);
       }
       if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
+      if (stockRes.data) {
+        const counts: Record<string, number> = {};
+        for (const row of stockRes.data as any[]) {
+          const key = row.plan_id ? `${row.product_id}:${row.plan_id}` : row.product_id;
+          counts[key] = Number(row.available_count);
+          // Also accumulate total per product
+          counts[row.product_id] = (counts[row.product_id] || 0) + (row.plan_id ? 0 : Number(row.available_count));
+          if (row.plan_id) {
+            counts[`total:${row.product_id}`] = (counts[`total:${row.product_id}`] || 0) + Number(row.available_count);
+          }
+        }
+        setStockCounts(counts);
+      }
     };
     fetchData();
   }, []);
@@ -779,7 +794,16 @@ const Index = () => {
                             <p className="text-[10px] text-muted-foreground -mt-0.5">A partir de</p>
                           )}
                         </div>
-                        <span className="text-[10px] text-primary font-medium flex items-center gap-0.5">● Disponíveis</span>
+                        {(() => {
+                          const totalStock = product.plans && product.plans.length > 0
+                            ? (stockCounts[`total:${product.id}`] || 0)
+                            : (stockCounts[product.id] || 0);
+                          return (
+                            <span className={`text-[10px] font-medium flex items-center gap-0.5 ${totalStock > 0 ? "text-primary" : "text-destructive"}`}>
+                              ● {totalStock > 0 ? `${totalStock} em estoque` : "Esgotado"}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {/* Sales */}
@@ -1095,7 +1119,10 @@ const Index = () => {
                               <p className={`text-xs mt-0.5 ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
                                 R$ {plan.price.toFixed(2).replace('.', ',')}
                               </p>
-                              <p className="text-[10px] text-primary mt-1">Disponíveis</p>
+                              {(() => {
+                                const count = stockCounts[`${selectedProduct.id}:${plan.id}`] || 0;
+                                return <p className={`text-[10px] mt-1 ${count > 0 ? "text-primary" : "text-destructive"}`}>{count > 0 ? `${count} disponíveis` : "Esgotado"}</p>;
+                              })()}
                             </button>
                           );
                         })}
@@ -1134,7 +1161,15 @@ const Index = () => {
                           {selectedProduct.plans.find(p => p.id === selectedPlans[selectedProduct.id])?.name}
                         </span>
                       )}
-                      <span className="flex items-center gap-1 text-primary">● Disponíveis</span>
+                      {(() => {
+                        const selPlanId = selectedPlans[selectedProduct.id];
+                        const count = selPlanId
+                          ? (stockCounts[`${selectedProduct.id}:${selPlanId}`] || 0)
+                          : selectedProduct.plans && selectedProduct.plans.length > 0
+                            ? (stockCounts[`total:${selectedProduct.id}`] || 0)
+                            : (stockCounts[selectedProduct.id] || 0);
+                        return <span className={`flex items-center gap-1 ${count > 0 ? "text-primary" : "text-destructive"}`}>● {count > 0 ? `${count} em estoque` : "Esgotado"}</span>;
+                      })()}
                       <span className="flex items-center gap-1 text-muted-foreground">
                         <Star className="h-3 w-3 fill-primary text-primary" />
                         <Star className="h-3 w-3 fill-primary text-primary" />
