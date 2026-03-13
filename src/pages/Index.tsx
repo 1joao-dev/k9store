@@ -496,6 +496,8 @@ const Index = () => {
   const [showCart, setShowCart] = useState(false);
   const [stockCounts, setStockCounts] = useState<Record<string, number>>({});
   const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [productResources, setProductResources] = useState<{ id: string; type: string; title: string; content: string | null; url: string | null }[]>([]);
+  const [resourceTab, setResourceTab] = useState<"tutorial" | "download" | "fix">("tutorial");
   const { user, isAdmin, signOut, profile, userRole, refreshProfile } = useAuth();
 
   const ROLE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
