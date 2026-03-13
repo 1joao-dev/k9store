@@ -12,6 +12,7 @@ import { toast } from "sonner";
 const SECTIONS = [
   { id: "home", label: "Início" },
   { id: "store", label: "Loja" },
+  { id: "orders", label: "Pedidos" },
   { id: "giveaways", label: "Sorteios" },
   { id: "tools", label: "Ferramentas" },
   { id: "feedback", label: "Feedback" },
