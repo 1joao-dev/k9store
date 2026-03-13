@@ -710,9 +710,21 @@ export default function Admin() {
                       <h2 className="text-sm font-bold truncate">{respondingTicket.subject}</h2>
                       <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
                     </div>
-                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
-                      <X className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {respondingTicket.status !== "fechado" && (
+                        <CloseWithTranscriptButton
+                          ticketId={respondingTicket.id}
+                          subject={respondingTicket.subject}
+                          onClosed={() => {
+                            setRespondingTicket(null);
+                            fetchAll();
+                          }}
+                        />
+                      )}
+                      <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="px-4 py-2 bg-secondary/30 border-b border-border">
                     <p className="text-[10px] text-muted-foreground/60 mb-0.5">Descrição original</p>
