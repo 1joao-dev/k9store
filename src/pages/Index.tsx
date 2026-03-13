@@ -261,6 +261,8 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const { balance, fetchBalance } = useWallet();
+  const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handlePayWithBalance = async () => {
     if (balance < cartTotal) {
@@ -270,7 +272,6 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
     setProcessing(true);
     setError("");
     try {
-      // Deduct balance via edge function or direct update
       const { error: rpcError } = await supabase.rpc("add_wallet_balance", {
         p_user_id: user!.id,
         p_amount: -cartTotal,
@@ -289,18 +290,29 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
   const handlePayWithPix = async () => {
     setProcessing(true);
     setError("");
+    setPixData(null);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("create-mp-payment", {
-        body: { amount: cartTotal },
+        body: { amount: cartTotal, method: "pix" },
       });
       if (fnError) throw fnError;
-      if (data?.init_point) {
-        window.open(data.init_point, "_blank");
+      if (data?.qr_code_base64) {
+        setPixData({ qr_code: data.qr_code, qr_code_base64: data.qr_code_base64 });
+      } else {
+        setError("Não foi possível gerar o QR Code Pix.");
       }
     } catch (e: any) {
       setError(e.message || "Erro ao criar pagamento");
     }
     setProcessing(false);
+  };
+
+  const copyPixCode = () => {
+    if (pixData?.qr_code) {
+      navigator.clipboard.writeText(pixData.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -314,6 +326,37 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
         <Link to="/login" className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-2">
           Entrar para comprar
         </Link>
+      ) : pixData ? (
+        <div className="space-y-3">
+          <button
+            onClick={() => { setPixData(null); setPayMethod(null); setError(""); }}
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Voltar
+          </button>
+          <div className="bg-secondary/30 border border-border rounded-xl p-4 text-center space-y-3">
+            <p className="text-xs font-semibold">Escaneie o QR Code para pagar</p>
+            <div className="flex justify-center">
+              <img
+                src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                alt="QR Code Pix"
+                className="w-48 h-48 rounded-lg"
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground">Ou copie o código Pix:</p>
+            <button
+              onClick={copyPixCode}
+              className="w-full py-2 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
+            >
+              {copied ? (
+                <><CheckCircle className="h-3 w-3 text-green-400" /> Copiado!</>
+              ) : (
+                <><ExternalLink className="h-3 w-3" /> Copiar código Pix</>
+              )}
+            </button>
+            <p className="text-[10px] text-muted-foreground/60">O saldo será creditado automaticamente após o pagamento.</p>
+          </div>
+        </div>
       ) : !payMethod ? (
         <div className="space-y-2">
           <p className="text-[11px] text-muted-foreground">Escolha a forma de pagamento:</p>
@@ -325,7 +368,7 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
             Saldo (R$ {Number(balance).toFixed(2)})
           </button>
           <button
-            onClick={() => setPayMethod("pix")}
+            onClick={() => { setPayMethod("pix"); }}
             className="w-full py-3 rounded-xl border border-border bg-secondary/30 text-sm font-semibold hover:bg-secondary/50 transition-all flex items-center justify-center gap-2"
           >
             <Zap className="h-4 w-4 text-green-400" />
@@ -356,7 +399,7 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
               className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              Pagar R${cartTotal.toFixed(2).replace('.', ',')} com Pix
+              Gerar QR Code Pix — R${cartTotal.toFixed(2).replace('.', ',')}
             </button>
           )}
           {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
