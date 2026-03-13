@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
 import { toast } from "sonner";
-import BackgroundMusic from "@/components/BackgroundMusic";
+
 
 const SECTIONS = [
   { id: "home", label: "Início" },
