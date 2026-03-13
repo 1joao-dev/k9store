@@ -285,6 +285,7 @@ const Index = () => {
       image_url: product.image_url,
     }]);
     setSelectedProduct(null);
+    setShowCart(true);
   };
 
   const removeFromCart = (index: number) => {
