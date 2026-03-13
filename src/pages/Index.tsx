@@ -572,14 +572,18 @@ const Index = () => {
           supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
           supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
         ]);
-        if (prodRes.data && plansRes.data) {
-          const plans = plansRes.data as Plan[];
-          const prods = (prodRes.data as Product[]).map(p => ({
-            ...p,
-            plans: plans.filter(pl => pl.product_id === p.id),
-          }));
-          setProducts(prods);
-        }
+        
+        if (prodRes.error) console.error("Products fetch error:", prodRes.error);
+        if (plansRes.error) console.error("Plans fetch error:", plansRes.error);
+        if (giveRes.error) console.error("Giveaways fetch error:", giveRes.error);
+
+        const plans = (plansRes.data as Plan[]) || [];
+        const prods = ((prodRes.data as Product[]) || []).map(p => ({
+          ...p,
+          plans: plans.filter(pl => pl.product_id === p.id),
+        }));
+        setProducts(prods);
+        
         if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
 
         // Fetch stock counts separately to not block products
