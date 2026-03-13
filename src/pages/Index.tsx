@@ -84,12 +84,15 @@ const IpLookupTool = () => {
     setError("");
     setResult(null);
     try {
-      const res = await fetch(`https://ip-api.com/json/${query}?fields=status,message,country,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
-      const data = await res.json();
-      if (data.status === "fail") {
-        setError(data.message || "IP inválido");
+      const res = await supabase.functions.invoke("ip-lookup", {
+        body: { ip: query },
+      });
+      if (res.error) {
+        setError("Erro ao consultar. Tente novamente.");
+      } else if (res.data?.status === "fail") {
+        setError(res.data.message || "IP inválido");
       } else {
-        setResult(data);
+        setResult(res.data);
       }
     } catch {
       setError("Erro ao consultar. Tente novamente.");
