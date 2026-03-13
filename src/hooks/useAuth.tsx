@@ -28,6 +28,7 @@ const AuthContext = createContext<AuthCtx>({
   isLoading: true,
   isAdmin: false,
   isRoleLoading: true,
+  userRole: null,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
