@@ -189,49 +189,20 @@ const SteamCheckerTool = () => {
     setError("");
     setResult(null);
     try {
-      // Use Steam's public profile XML endpoint (no API key needed)
-      const cleanId = steamId.trim().replace(/\/$/, "");
-      const id = cleanId.includes("steamcommunity.com") 
-        ? cleanId.split("/").filter(Boolean).pop() 
-        : cleanId;
-      
-      const res = await fetch(`https://steamcommunity.com/id/${id}/?xml=1`);
-      const text = await res.text();
-      
-      if (text.includes("<error>")) {
-        // Try as Steam64 ID
-        const res2 = await fetch(`https://steamcommunity.com/profiles/${id}/?xml=1`);
-        const text2 = await res2.text();
-        if (text2.includes("<error>")) {
-          setError("Perfil não encontrado. Use o custom URL ou Steam64 ID.");
-        } else {
-          parseProfile(text2);
-        }
+      const res = await supabase.functions.invoke("steam-lookup", {
+        body: { steamId: steamId.trim() },
+      });
+      if (res.error) {
+        setError("Erro ao consultar. Tente novamente.");
+      } else if (res.data?.error) {
+        setError(res.data.error);
       } else {
-        parseProfile(text);
+        setResult(res.data);
       }
     } catch {
       setError("Erro ao consultar. Tente novamente.");
     }
     setLoading(false);
-  };
-
-  const parseProfile = (xml: string) => {
-    const get = (tag: string) => {
-      const match = xml.match(new RegExp(`<${tag}><!\\[CDATA\\[(.+?)\\]\\]></${tag}>`)) || xml.match(new RegExp(`<${tag}>(.+?)</${tag}>`));
-      return match?.[1] || null;
-    };
-    const name = get("steamID");
-    const steamID64 = get("steamID64");
-    const vacBanned = xml.includes("<vacBanned>1</vacBanned>");
-    const onlineState = get("onlineState");
-    const memberSince = get("memberSince");
-    
-    if (!name && !steamID64) {
-      setError("Não foi possível ler o perfil. Pode estar privado.");
-      return;
-    }
-    setResult({ name, steamID64, vacBanned, onlineState, memberSince });
   };
 
   return (
