@@ -94,7 +94,7 @@ export function WalletButton() {
                     <img
                       src={`data:image/png;base64,${pixData.qr_code_base64}`}
                       alt="QR Code Pix"
-                      className="w-[min(78vw,320px)] h-[min(78vw,320px)] max-w-full max-h-[60vh] object-contain rounded-lg"
+                      className="w-full max-w-[320px] aspect-square h-auto object-contain rounded-lg"
                     />
                   </div>
 
