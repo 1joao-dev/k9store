@@ -381,6 +381,11 @@ const Index = () => {
                     </div>
                   )}
                   <span className="text-[11px] font-medium hidden sm:inline">{profile?.username || user.email?.split("@")[0]}</span>
+                  {roleBadge && (
+                    <span className={`text-[8px] tracking-wider font-bold px-1.5 py-0.5 rounded border ${roleBadge.bg} ${roleBadge.color}`}>
+                      {roleBadge.label}
+                    </span>
+                  )}
                   <button onClick={signOut} className="p-0.5 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
                     <LogOut className="h-3.5 w-3.5" />
                   </button>
