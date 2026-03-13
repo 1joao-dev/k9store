@@ -1119,7 +1119,10 @@ const Index = () => {
                               <p className={`text-xs mt-0.5 ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
                                 R$ {plan.price.toFixed(2).replace('.', ',')}
                               </p>
-                              <p className="text-[10px] text-primary mt-1">Disponíveis</p>
+                              {(() => {
+                                const count = stockCounts[`${selectedProduct.id}:${plan.id}`] || 0;
+                                return <p className={`text-[10px] mt-1 ${count > 0 ? "text-primary" : "text-destructive"}`}>{count > 0 ? `${count} disponíveis` : "Esgotado"}</p>;
+                              })()}
                             </button>
                           );
                         })}
