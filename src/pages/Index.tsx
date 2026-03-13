@@ -1315,6 +1315,107 @@ const Index = () => {
 
 export default Index;
 
+/* ---- Profile Settings Modal ---- */
+function ProfileSettingsModal({ onClose }: { onClose: () => void }) {
+  const { user, refreshProfile } = useAuth();
+  const [discordId, setDiscordId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("discord_id")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setDiscordId(data?.discord_id || "");
+        setLoading(false);
+      });
+  }, [user?.id]);
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ discord_id: discordId.trim() || null } as any)
+      .eq("id", user.id);
+    if (error) {
+      toast.error("Erro ao salvar");
+    } else {
+      toast.success("Discord ID salvo!");
+      await refreshProfile();
+    }
+    setSaving(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[70] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="text-sm font-bold">Configurações do Perfil</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          {loading ? (
+            <div className="text-center py-6">
+              <Loader2 className="h-5 w-5 text-primary mx-auto animate-spin" />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">Discord ID</label>
+                <p className="text-[10px] text-muted-foreground/70">
+                  Cole seu ID do Discord para receber notificações por DM. Para encontrar: ative o Modo Desenvolvedor no Discord → clique com o botão direito no seu perfil → "Copiar ID do Usuário".
+                </p>
+                <input
+                  type="text"
+                  value={discordId}
+                  onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Ex: 123456789012345678"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                />
+              </div>
+              <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                <p className="text-[10px] font-semibold text-muted-foreground">Notificações que você receberá:</p>
+                <ul className="text-[10px] text-muted-foreground/70 space-y-0.5">
+                  <li>🎁 Produto entregue</li>
+                  <li>💬 Ticket respondido / assumido / encerrado</li>
+                  <li>✅ Pagamento confirmado</li>
+                </ul>
+              </div>
+              <button
+                onClick={save}
+                disabled={saving}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              >
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
+                {saving ? "Salvando..." : "Salvar"}
+              </button>
+            </>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 /* ---- Feedback Form ---- */
 function FeedbackForm() {
   const [rating, setRating] = useState(0);
