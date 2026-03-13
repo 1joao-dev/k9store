@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -35,7 +34,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { amount } = await req.json();
+    const { amount, method } = await req.json();
     if (!amount || amount < 1) {
       return new Response(JSON.stringify({ error: "Valor mínimo: R$ 1,00" }), {
         status: 400,
@@ -51,11 +50,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create transaction record
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Ensure wallet exists
     await adminClient.rpc("ensure_wallet", { p_user_id: user.id });
 
     const { data: txn, error: txnError } = await adminClient
@@ -71,15 +68,69 @@ Deno.serve(async (req) => {
       .single();
 
     if (txnError) {
+      console.error("Transaction error:", txnError);
       return new Response(JSON.stringify({ error: "Erro ao criar transação" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create Mercado Pago preference
     const webhookUrl = `${supabaseUrl}/functions/v1/mp-webhook`;
 
+    // If method is "pix", create a direct Pix payment with QR code
+    if (method === "pix") {
+      const pixPayment = {
+        transaction_amount: Number(amount),
+        payment_method_id: "pix",
+        payer: {
+          email: user.email,
+        },
+        description: `Depósito K9 Store - R$ ${Number(amount).toFixed(2)}`,
+        external_reference: JSON.stringify({ txn_id: txn.id, user_id: user.id }),
+        notification_url: webhookUrl,
+      };
+
+      const mpRes = await fetch("https://api.mercadopago.com/v1/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${mpToken}`,
+          "X-Idempotency-Key": txn.id,
+        },
+        body: JSON.stringify(pixPayment),
+      });
+
+      const mpData = await mpRes.json();
+      console.log("Pix payment response status:", mpRes.status);
+
+      if (!mpRes.ok) {
+        console.error("MP Pix error:", JSON.stringify(mpData));
+        return new Response(JSON.stringify({ error: "Erro ao gerar Pix", details: mpData.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      await adminClient
+        .from("wallet_transactions")
+        .update({ mp_payment_id: String(mpData.id) })
+        .eq("id", txn.id);
+
+      const pixInfo = mpData.point_of_interaction?.transaction_data;
+
+      return new Response(
+        JSON.stringify({
+          method: "pix",
+          qr_code: pixInfo?.qr_code || null,
+          qr_code_base64: pixInfo?.qr_code_base64 || null,
+          txn_id: txn.id,
+          payment_id: mpData.id,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Default: create checkout preference (redirect)
     const preference = {
       items: [
         {
@@ -118,7 +169,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update transaction with MP payment ID
     await adminClient
       .from("wallet_transactions")
       .update({ mp_payment_id: mpData.id })
@@ -126,6 +176,7 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({
+        method: "redirect",
         init_point: mpData.init_point,
         txn_id: txn.id,
       }),
