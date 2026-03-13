@@ -451,18 +451,32 @@ const Index = () => {
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   useEffect(() => {
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
     const handleScroll = () => {
-      const scrollY = window.scrollY + 120;
-      for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = document.getElementById(SECTIONS[i].id);
-        if (el && el.offsetTop <= scrollY) {
-          setActiveSection(SECTIONS[i].id);
-          break;
+      if (scrollTimeout) return;
+      scrollTimeout = setTimeout(() => {
+        scrollTimeout = null;
+        const viewportMiddle = window.scrollY + window.innerHeight / 3;
+        let closest = SECTIONS[0].id;
+        let closestDist = Infinity;
+        for (const s of SECTIONS) {
+          const el = document.getElementById(s.id);
+          if (!el) continue;
+          const elMiddle = el.offsetTop + el.offsetHeight / 2;
+          const dist = Math.abs(viewportMiddle - elMiddle);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = s.id;
+          }
         }
-      }
+        setActiveSection(closest);
+      }, 50);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
   }, []);
 
   useEffect(() => {
