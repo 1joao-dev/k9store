@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image, Eye, RefreshCw, Search, Loader2, MapPin, Wifi, Server, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -1076,6 +1076,129 @@ function FeedbackForm() {
   );
 }
 
+/* ---- Ticket Chat Component ---- */
+function TicketChat({ ticketId, onClose }: { ticketId: string; onClose: () => void }) {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<{ id: string; sender_type: string; message: string; created_at: string; sender_id: string | null }[]>([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  const fetchMessages = async () => {
+    const { data } = await supabase
+      .from("ticket_messages")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchMessages();
+
+    const channel = supabase
+      .channel(`ticket-chat-${ticketId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ticket_messages", filter: `ticket_id=eq.${ticketId}` },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as any]);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [ticketId]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!newMsg.trim() || !user || sending) return;
+    setSending(true);
+    await supabase.from("ticket_messages").insert({
+      ticket_id: ticketId,
+      sender_id: user.id,
+      sender_type: "user",
+      message: newMsg.trim(),
+    });
+    setNewMsg("");
+    setSending(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-[60vh] max-h-[500px]">
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        {loading ? (
+          <div className="text-center py-8">
+            <RefreshCw className="h-4 w-4 text-muted-foreground/30 mx-auto animate-spin" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="h-6 w-6 text-muted-foreground/15 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground/60">Nenhuma mensagem ainda. Envie a primeira!</p>
+          </div>
+        ) : (
+          messages.map((m) => {
+            const isMe = m.sender_type === "user";
+            return (
+              <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  isMe
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-secondary border border-border text-foreground rounded-bl-md"
+                }`}>
+                  {!isMe && (
+                    <p className="text-[10px] font-semibold text-primary mb-1">🛡️ Equipe</p>
+                  )}
+                  <p className="whitespace-pre-wrap break-words text-xs">{m.message}</p>
+                  <p className={`text-[9px] mt-1 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground/50"}`}>
+                    {new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border px-4 py-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value.slice(0, 1000))}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            rows={1}
+            className="flex-1 px-3 py-2 rounded-xl bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors resize-none"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMsg.trim() || sending}
+            className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all disabled:opacity-40"
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---- Ticket Section ---- */
 type TicketData = {
   id: string;
@@ -1196,21 +1319,15 @@ function TicketSection() {
                       {new Date(t.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground/30 mt-2 flex-shrink-0" />
+                  <MessageCircle className="h-4 w-4 text-primary/40 mt-2 flex-shrink-0" />
                 </div>
-                {t.admin_response && (
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <p className="text-[10px] font-semibold text-primary mb-1">Resposta da equipe:</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{t.admin_response}</p>
-                  </div>
-                )}
               </div>
             ))
           )}
         </div>
       )}
 
-      {/* Ticket Detail Modal */}
+      {/* Ticket Chat Modal */}
       <AnimatePresence>
         {viewTicket && (
           <motion.div
@@ -1225,57 +1342,35 @@ function TicketSection() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-card border border-border rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+              className="bg-card border border-border rounded-2xl max-w-lg w-full overflow-hidden flex flex-col"
             >
-              <div className="p-5 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Ticket className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-bold">Detalhes do Ticket</span>
+              {/* Header */}
+              <div className="p-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <MessageCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{viewTicket.subject}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold border ${statusColor(viewTicket.status)}`}>
+                        {statusLabel(viewTicket.status)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{viewTicket.category}</span>
+                    </div>
+                  </div>
                 </div>
                 <button onClick={() => setViewTicket(null)} className="text-muted-foreground hover:text-foreground">
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor(viewTicket.status)}`}>
-                    {statusLabel(viewTicket.status)}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{viewTicket.category}</span>
-                  <span className="text-[10px] text-muted-foreground/50 ml-auto">
-                    {new Date(viewTicket.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
 
-                <div>
-                  <p className="text-xs text-muted-foreground/60 mb-1">Assunto</p>
-                  <p className="text-sm font-semibold">{viewTicket.subject}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-muted-foreground/60 mb-1">Descrição</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{viewTicket.description}</p>
-                </div>
-
-                {viewTicket.admin_response && (
-                  <div className="bg-primary/5 border border-primary/15 rounded-xl p-4">
-                    <p className="text-xs font-semibold text-primary mb-2 flex items-center gap-1.5">
-                      <MessageCircle className="h-3.5 w-3.5" /> Resposta da Equipe
-                    </p>
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{viewTicket.admin_response}</p>
-                  </div>
-                )}
-
-                {!viewTicket.admin_response && viewTicket.status === "aberto" && (
-                  <div className="bg-yellow-500/5 border border-yellow-500/15 rounded-xl p-4 flex items-start gap-2.5">
-                    <Clock className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-xs font-semibold text-yellow-400">Aguardando resposta</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Nossa equipe responderá em até 24h.</p>
-                    </div>
-                  </div>
-                )}
+              {/* Original description */}
+              <div className="px-5 py-3 bg-secondary/30 border-b border-border">
+                <p className="text-[10px] text-muted-foreground/60 mb-1">Descrição original</p>
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{viewTicket.description}</p>
               </div>
+
+              {/* Chat */}
+              <TicketChat ticketId={viewTicket.id} onClose={() => setViewTicket(null)} />
             </motion.div>
           </motion.div>
         )}

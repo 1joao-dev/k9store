@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, Gift, ArrowLeft, Save, X, LogOut, ShieldCheck, Ticket, MessageCircle, Clock, CheckCircle2, List, Upload, Image, Send } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
@@ -644,45 +644,24 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Respond Modal */}
+            {/* Chat Modal */}
             {respondingTicket && (
               <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-bold">Responder Ticket</h2>
-                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground">
+                <div className="bg-card border border-border rounded-xl w-full max-w-lg flex flex-col overflow-hidden" style={{ maxHeight: '80vh' }}>
+                  <div className="flex items-center justify-between p-4 border-b border-border">
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-bold truncate">{respondingTicket.subject}</h2>
+                      <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
+                    </div>
+                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="bg-secondary/50 rounded-lg p-3 space-y-1">
-                    <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
-                    <p className="text-xs font-semibold">{respondingTicket.subject}</p>
-                    <p className="text-xs text-muted-foreground">{respondingTicket.description}</p>
+                  <div className="px-4 py-2 bg-secondary/30 border-b border-border">
+                    <p className="text-[10px] text-muted-foreground/60 mb-0.5">Descrição original</p>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{respondingTicket.description}</p>
                   </div>
-                  {respondingTicket.admin_response && (
-                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
-                      <p className="text-[10px] text-primary font-medium mb-1">Resposta anterior:</p>
-                      <p className="text-xs text-muted-foreground">{respondingTicket.admin_response}</p>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Sua resposta</label>
-                    <textarea
-                      value={ticketResponse}
-                      onChange={e => setTicketResponse(e.target.value)}
-                      placeholder="Escreva sua resposta..."
-                      rows={4}
-                      className={`${inputClass} resize-none`}
-                    />
-                  </div>
-                  <button
-                    onClick={respondToTicket}
-                    disabled={!ticketResponse.trim()}
-                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    Enviar resposta
-                  </button>
+                  <AdminTicketChat ticketId={respondingTicket.id} onStatusChange={(status) => { updateTicketStatus(respondingTicket.id, status); }} />
                 </div>
               </div>
             )}
@@ -765,6 +744,129 @@ export default function Admin() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ---- Admin Ticket Chat ---- */
+function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onStatusChange: (status: string) => void }) {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<{ id: string; sender_type: string; message: string; created_at: string; sender_id: string | null }[]>([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchMessages = async () => {
+    const { data } = await supabase
+      .from("ticket_messages")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchMessages();
+
+    const channel = supabase
+      .channel(`admin-ticket-${ticketId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ticket_messages", filter: `ticket_id=eq.${ticketId}` },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as any]);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [ticketId]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!newMsg.trim() || !user || sending) return;
+    setSending(true);
+    await supabase.from("ticket_messages").insert({
+      ticket_id: ticketId,
+      sender_id: user.id,
+      sender_type: "admin",
+      message: newMsg.trim(),
+    });
+    // Also update ticket status to respondido
+    onStatusChange("respondido");
+    setNewMsg("");
+    setSending(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="flex flex-col" style={{ height: '50vh' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
+        {loading ? (
+          <div className="text-center py-8">
+            <Clock className="h-4 w-4 text-muted-foreground/30 mx-auto animate-spin" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="h-6 w-6 text-muted-foreground/15 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground/60">Nenhuma mensagem. Envie uma resposta!</p>
+          </div>
+        ) : (
+          messages.map((m) => {
+            const isAdmin = m.sender_type === "admin";
+            return (
+              <div key={m.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                  isAdmin
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-secondary border border-border text-foreground rounded-bl-md"
+                }`}>
+                  {!isAdmin && (
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">👤 Cliente</p>
+                  )}
+                  <p className="whitespace-pre-wrap break-words">{m.message}</p>
+                  <p className={`text-[9px] mt-1 ${isAdmin ? "text-primary-foreground/60" : "text-muted-foreground/50"}`}>
+                    {new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div className="border-t border-border px-4 py-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value.slice(0, 2000))}
+            onKeyDown={handleKeyDown}
+            placeholder="Responder ao cliente..."
+            rows={1}
+            className="flex-1 px-3 py-2 rounded-xl bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors resize-none [color-scheme:dark]"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMsg.trim() || sending}
+            className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all disabled:opacity-40"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
