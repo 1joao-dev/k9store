@@ -7,6 +7,8 @@ type Profile = {
   avatar_url: string | null;
 };
 
+type UserRole = "dono" | "admin" | "suporte" | "moderator" | "cliente_vip" | "user" | null;
+
 type AuthCtx = {
   user: User | null;
   session: Session | null;
@@ -14,6 +16,7 @@ type AuthCtx = {
   isLoading: boolean;
   isAdmin: boolean;
   isRoleLoading: boolean;
+  userRole: UserRole;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
