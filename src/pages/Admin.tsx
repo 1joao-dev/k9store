@@ -328,6 +328,36 @@ export default function Admin() {
     fetchAll();
   };
 
+  // Resources CRUD
+  const openResourcesManager = async (product: Product) => {
+    setManagingResourcesFor(product);
+    const { data } = await supabase.from("product_resources").select("*").eq("product_id", product.id).order("sort_order");
+    setResources((data || []) as ResourceItem[]);
+    setNewResType("tutorial");
+    setNewResTitle("");
+    setNewResContent("");
+    setNewResUrl("");
+  };
+
+  const addResource = async () => {
+    if (!managingResourcesFor || !newResTitle.trim()) return;
+    await supabase.from("product_resources").insert({
+      product_id: managingResourcesFor.id,
+      type: newResType,
+      title: newResTitle.trim(),
+      content: newResContent.trim() || null,
+      url: newResUrl.trim() || null,
+      sort_order: resources.length,
+    });
+    openResourcesManager(managingResourcesFor);
+  };
+
+  const deleteResource = async (id: string) => {
+    if (!managingResourcesFor) return;
+    await supabase.from("product_resources").delete().eq("id", id);
+    openResourcesManager(managingResourcesFor);
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground caret-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors [color-scheme:dark]";
 
   // Auth guards
