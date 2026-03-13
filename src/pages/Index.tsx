@@ -504,7 +504,7 @@ const Index = () => {
                     )}
 
                     {/* Thumbnail */}
-                    <div className="relative w-full h-48 bg-secondary overflow-hidden">
+                    <div className="relative w-full aspect-[4/3] bg-secondary overflow-hidden">
                       {product.image_url ? (
                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                       ) : (
