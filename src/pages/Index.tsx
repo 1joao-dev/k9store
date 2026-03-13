@@ -264,6 +264,32 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
   const { balance, fetchBalance } = useWallet();
   const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [orderResult, setOrderResult] = useState<{ productName: string; planName?: string; content: string | null }[] | null>(null);
+
+  const createOrders = async (paymentMethod: string) => {
+    const results: { productName: string; planName?: string; content: string | null }[] = [];
+    for (const item of cart) {
+      // Claim stock
+      const { data: stockContent } = await supabase.rpc("claim_stock_item", {
+        p_product_id: item.productId,
+        p_plan_id: item.planId,
+      });
+      // Create order
+      await supabase.from("orders").insert({
+        user_id: user!.id,
+        product_id: item.productId,
+        plan_id: item.planId,
+        product_name: item.productName,
+        plan_name: item.planName,
+        price: item.price,
+        status: "completed",
+        delivered_content: stockContent || null,
+        payment_method: paymentMethod,
+      });
+      results.push({ productName: item.productName, planName: item.planName || undefined, content: stockContent });
+    }
+    return results;
+  };
 
   const handlePayWithBalance = async () => {
     if (balance < cartTotal) {
@@ -280,8 +306,9 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
       });
       if (rpcError) throw rpcError;
       await fetchBalance();
+      const results = await createOrders("saldo");
+      setOrderResult(results);
       setCart([]);
-      setShowCart(false);
     } catch (e: any) {
       setError(e.message || "Erro ao processar pagamento");
     }
