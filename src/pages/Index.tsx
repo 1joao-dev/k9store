@@ -545,33 +545,43 @@ const Index = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [prodRes, giveRes, plansRes, stockRes] = await Promise.all([
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
-        supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
-        supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
-        supabase.rpc("get_stock_counts"),
-      ]);
-      if (prodRes.data && plansRes.data) {
-        const plans = plansRes.data as Plan[];
-        const prods = (prodRes.data as Product[]).map(p => ({
-          ...p,
-          plans: plans.filter(pl => pl.product_id === p.id),
-        }));
-        setProducts(prods);
-      }
-      if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
-      if (stockRes.data) {
-        const counts: Record<string, number> = {};
-        for (const row of stockRes.data as any[]) {
-          const key = row.plan_id ? `${row.product_id}:${row.plan_id}` : row.product_id;
-          counts[key] = Number(row.available_count);
-          // Also accumulate total per product
-          counts[row.product_id] = (counts[row.product_id] || 0) + (row.plan_id ? 0 : Number(row.available_count));
-          if (row.plan_id) {
-            counts[`total:${row.product_id}`] = (counts[`total:${row.product_id}`] || 0) + Number(row.available_count);
-          }
+      try {
+        const [prodRes, giveRes, plansRes] = await Promise.all([
+          supabase.from("products").select("*").order("created_at", { ascending: false }),
+          supabase.from("giveaways").select("*").eq("active", true).order("created_at", { ascending: false }),
+          supabase.from("product_plans").select("*").order("sort_order", { ascending: true }),
+        ]);
+        if (prodRes.data && plansRes.data) {
+          const plans = plansRes.data as Plan[];
+          const prods = (prodRes.data as Product[]).map(p => ({
+            ...p,
+            plans: plans.filter(pl => pl.product_id === p.id),
+          }));
+          setProducts(prods);
         }
-        setStockCounts(counts);
+        if (giveRes.data) setGiveaways(giveRes.data as Giveaway[]);
+
+        // Fetch stock counts separately to not block products
+        try {
+          const stockRes = await supabase.rpc("get_stock_counts");
+          if (stockRes.data) {
+            const counts: Record<string, number> = {};
+            for (const row of stockRes.data as any[]) {
+              const key = row.plan_id ? `${row.product_id}:${row.plan_id}` : row.product_id;
+              counts[key] = Number(row.available_count);
+              if (row.plan_id) {
+                counts[`total:${row.product_id}`] = (counts[`total:${row.product_id}`] || 0) + Number(row.available_count);
+              } else {
+                counts[row.product_id] = (counts[row.product_id] || 0) + Number(row.available_count);
+              }
+            }
+            setStockCounts(counts);
+          }
+        } catch (e) {
+          console.error("Stock counts error:", e);
+        }
+      } catch (e) {
+        console.error("Fetch data error:", e);
       }
     };
     fetchData();
