@@ -261,7 +261,17 @@ const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
-  const { user, isAdmin, signOut, profile } = useAuth();
+  const { user, isAdmin, signOut, profile, userRole } = useAuth();
+
+  const ROLE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
+    dono: { label: "DONO", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
+    admin: { label: "ADMIN", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
+    suporte: { label: "SUPORTE", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+    cliente_vip: { label: "VIP", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20" },
+    moderator: { label: "MOD", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
+    user: { label: "CLIENTE", color: "text-muted-foreground", bg: "bg-secondary/50 border-border" },
+  };
+  const roleBadge = userRole ? ROLE_BADGES[userRole] : ROLE_BADGES["user"];
 
   const addToCart = (product: Product, planId: string | null) => {
     const plan = planId ? product.plans?.find(p => p.id === planId) : null;
