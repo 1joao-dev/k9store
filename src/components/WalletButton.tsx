@@ -72,58 +72,65 @@ export function WalletButton() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto"
+              className={`bg-card border border-border rounded-2xl w-full ${pixData ? "max-w-md p-5" : "max-w-sm p-6 max-h-[90vh] overflow-y-auto"}`}
             >
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-primary" />
-                  <h3 className="text-base font-bold">Carteira</h3>
-                </div>
-                <button onClick={() => setShowModal(false)} className="p-1 text-muted-foreground hover:text-foreground">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="bg-secondary/50 border border-border rounded-xl p-4 text-center mb-5">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Saldo atual</p>
-                <p className="text-2xl font-black text-primary">
-                  R$ {Number(balance).toFixed(2)}
-                </p>
-              </div>
-
               {pixData ? (
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setPixData(null)}
-                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    ← Voltar
-                  </button>
-                  <div className="bg-secondary/30 border border-border rounded-xl p-4 text-center space-y-3">
-                    <p className="text-xs font-semibold">Escaneie o QR Code para depositar</p>
-                    <div className="flex justify-center">
-                      <img
-                        src={`data:image/png;base64,${pixData.qr_code_base64}`}
-                        alt="QR Code Pix"
-                        className="w-44 h-44 rounded-lg"
-                      />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">Ou copie o código Pix:</p>
+                <div className="space-y-4 text-center">
+                  <div className="flex items-center justify-between">
                     <button
-                      onClick={copyPixCode}
-                      className="w-full py-2 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
+                      onClick={() => setPixData(null)}
+                      className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {copied ? (
-                        <><CheckCircle className="h-3 w-3 text-green-400" /> Copiado!</>
-                      ) : (
-                        <><Copy className="h-3 w-3" /> Copiar código Pix</>
-                      )}
+                      ← Voltar
                     </button>
-                    <p className="text-[10px] text-muted-foreground/60">O saldo será creditado automaticamente após o pagamento.</p>
+                    <button onClick={() => setShowModal(false)} className="p-1 text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
+
+                  <p className="text-sm font-semibold">Escaneie o QR Code para depositar</p>
+
+                  <div className="bg-secondary/30 border border-border rounded-xl p-3 flex justify-center">
+                    <img
+                      src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                      alt="QR Code Pix"
+                      className="w-[min(78vw,320px)] h-[min(78vw,320px)] max-w-full max-h-[60vh] object-contain rounded-lg"
+                    />
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground">Ou copie o código Pix:</p>
+                  <button
+                    onClick={copyPixCode}
+                    className="w-full py-2.5 rounded-lg border border-border bg-secondary/50 text-[11px] font-medium hover:bg-secondary transition-all flex items-center justify-center gap-1.5"
+                  >
+                    {copied ? (
+                      <><CheckCircle className="h-3 w-3 text-primary" /> Copiado!</>
+                    ) : (
+                      <><Copy className="h-3 w-3" /> Copiar código Pix</>
+                    )}
+                  </button>
+
+                  <p className="text-[10px] text-muted-foreground/70">O saldo será creditado automaticamente após o pagamento.</p>
                 </div>
               ) : (
                 <>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <h3 className="text-base font-bold">Carteira</h3>
+                    </div>
+                    <button onClick={() => setShowModal(false)} className="p-1 text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-secondary/50 border border-border rounded-xl p-4 text-center mb-5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Saldo atual</p>
+                    <p className="text-2xl font-black text-primary">
+                      R$ {Number(balance).toFixed(2)}
+                    </p>
+                  </div>
+
                   <p className="text-xs text-muted-foreground mb-3">Adicionar saldo via Pix:</p>
 
                   <div className="grid grid-cols-3 gap-2 mb-3">
