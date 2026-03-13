@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
+import { toast } from "sonner";
 
 const SECTIONS = [
   { id: "home", label: "Início" },
@@ -442,6 +443,7 @@ const Index = () => {
     }]);
     setSelectedProduct(null);
     setShowCart(true);
+    toast.success(`${product.name} adicionado ao carrinho!`);
   };
 
   const removeFromCart = (index: number) => {
