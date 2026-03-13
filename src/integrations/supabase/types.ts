@@ -408,6 +408,14 @@ export type Database = {
         Returns: string
       }
       ensure_wallet: { Args: { p_user_id: string }; Returns: undefined }
+      get_stock_counts: {
+        Args: never
+        Returns: {
+          available_count: number
+          plan_id: string
+          product_id: string
+        }[]
+      }
       has_admin_access: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
