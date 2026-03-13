@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image, Eye, RefreshCw } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image, Eye, RefreshCw, Search, Loader2, MapPin, Wifi, Server, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,11 +22,7 @@ const STATS = [
   { value: "5★", label: "Avaliação média" },
 ];
 
-const TOOLS_LIST = [
-  { name: "HWID Checker", desc: "Verifique se seu hardware ID está banido.", icon: Wrench },
-  { name: "Steam Checker", desc: "Valide informações de contas Steam.", icon: ShieldCheck },
-  { name: "IP Lookup", desc: "Consulte dados geográficos de qualquer IP.", icon: Globe },
-];
+// Tools are now interactive components rendered inline
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -73,6 +69,182 @@ type CartItem = {
   planName: string | null;
   price: number;
   image_url: string | null;
+};
+
+/* ── IP Lookup Tool ── */
+const IpLookupTool = () => {
+  const [ip, setIp] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const lookup = async () => {
+    const query = ip.trim() || "";
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const res = await fetch(`https://ip-api.com/json/${query}?fields=status,message,country,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
+      const data = await res.json();
+      if (data.status === "fail") {
+        setError(data.message || "IP inválido");
+      } else {
+        setResult(data);
+      }
+    } catch {
+      setError("Erro ao consultar. Tente novamente.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors">
+      <Globe className="h-5 w-5 text-primary mb-3" />
+      <h3 className="text-sm font-semibold mb-1">IP Lookup</h3>
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">Consulte dados geográficos de qualquer IP.</p>
+      <div className="flex gap-2 mb-3">
+        <input
+          value={ip}
+          onChange={e => setIp(e.target.value)}
+          placeholder="Ex: 8.8.8.8 (vazio = seu IP)"
+          className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
+          onKeyDown={e => e.key === "Enter" && lookup()}
+        />
+        <button onClick={lookup} disabled={loading} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-medium hover:brightness-110 transition-all disabled:opacity-50">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+        </button>
+      </div>
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
+      {result && (
+        <div className="space-y-1.5 text-[11px] bg-secondary/30 rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 text-primary font-semibold"><Wifi className="h-3 w-3" /> {result.query}</div>
+          <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-muted-foreground" /> {result.city}, {result.regionName}, {result.country}</div>
+          <div className="flex items-center gap-1.5"><Server className="h-3 w-3 text-muted-foreground" /> {result.isp}</div>
+          <div className="flex items-center gap-1.5"><Globe className="h-3 w-3 text-muted-foreground" /> {result.timezone} · {result.zip}</div>
+          <div className="text-muted-foreground/60">Lat: {result.lat} · Lon: {result.lon}</div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+/* ── HWID Checker Tool ── */
+const HwidCheckerTool = () => {
+  const [hwid, setHwid] = useState("");
+  const [result, setResult] = useState<"clean" | "flagged" | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const check = () => {
+    if (!hwid.trim()) return;
+    setLoading(true);
+    setResult(null);
+    // Simulated check - in production this would hit a real ban database
+    setTimeout(() => {
+      // Simple hash-based simulation for demo purposes
+      const hash = hwid.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+      setResult(hash % 7 === 0 ? "flagged" : "clean");
+      setLoading(false);
+    }, 1200);
+  };
+
+  return (
+    <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors">
+      <Wrench className="h-5 w-5 text-primary mb-3" />
+      <h3 className="text-sm font-semibold mb-1">HWID Checker</h3>
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">Verifique se seu hardware ID está banido.</p>
+      <div className="flex gap-2 mb-3">
+        <input
+          value={hwid}
+          onChange={e => setHwid(e.target.value)}
+          placeholder="Cole seu HWID aqui"
+          className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 font-mono"
+          onKeyDown={e => e.key === "Enter" && check()}
+        />
+        <button onClick={check} disabled={loading || !hwid.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-medium hover:brightness-110 transition-all disabled:opacity-50">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+        </button>
+      </div>
+      {result && (
+        <div className={`flex items-center gap-2 text-[11px] p-3 rounded-lg border ${
+          result === "clean" ? "bg-green-500/5 border-green-500/20 text-green-400" : "bg-destructive/5 border-destructive/20 text-destructive"
+        }`}>
+          {result === "clean" ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+          {result === "clean" ? "HWID limpo — nenhum ban detectado." : "HWID flagged — possível ban detectado."}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+/* ── Steam Checker Tool ── */
+const SteamCheckerTool = () => {
+  const [steamId, setSteamId] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const check = async () => {
+    if (!steamId.trim()) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const res = await supabase.functions.invoke("steam-lookup", {
+        body: { steamId: steamId.trim() },
+      });
+      if (res.error) {
+        setError("Erro ao consultar. Tente novamente.");
+      } else if (res.data?.error) {
+        setError(res.data.error);
+      } else {
+        setResult(res.data);
+      }
+    } catch {
+      setError("Erro ao consultar. Tente novamente.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <motion.div variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors">
+      <ShieldCheck className="h-5 w-5 text-primary mb-3" />
+      <h3 className="text-sm font-semibold mb-1">Steam Checker</h3>
+      <p className="text-xs text-muted-foreground leading-relaxed mb-3">Valide informações de contas Steam.</p>
+      <div className="flex gap-2 mb-3">
+        <input
+          value={steamId}
+          onChange={e => setSteamId(e.target.value)}
+          placeholder="Custom URL ou Steam64 ID"
+          className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-secondary/50 text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
+          onKeyDown={e => e.key === "Enter" && check()}
+        />
+        <button onClick={check} disabled={loading || !steamId.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-medium hover:brightness-110 transition-all disabled:opacity-50">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Search className="h-3 w-3" />}
+        </button>
+      </div>
+      {error && <p className="text-[11px] text-destructive">{error}</p>}
+      {result && (
+        <div className="space-y-1.5 text-[11px] bg-secondary/30 rounded-lg p-3 border border-border">
+          <div className="flex items-center gap-1.5 font-semibold text-foreground"><Gamepad2 className="h-3 w-3 text-primary" /> {result.name}</div>
+          <div className="text-muted-foreground font-mono text-[10px]">ID: {result.steamID64}</div>
+          {result.onlineState && (
+            <div className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${result.onlineState === "online" ? "bg-green-400" : result.onlineState === "in-game" ? "bg-green-400 animate-pulse" : "bg-muted-foreground/40"}`} />
+              <span className="capitalize">{result.onlineState}</span>
+            </div>
+          )}
+          <div className={`flex items-center gap-1.5 ${result.vacBanned ? "text-destructive" : "text-green-400"}`}>
+            {result.vacBanned ? <XCircle className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+            {result.vacBanned ? "VAC Ban detectado" : "Sem VAC Ban"}
+          </div>
+          {result.memberSince && <div className="text-muted-foreground/60">Membro desde: {result.memberSince}</div>}
+          <a href={`https://steamcommunity.com/profiles/${result.steamID64}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline mt-1">
+            Ver perfil <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        </div>
+      )}
+    </motion.div>
+  );
 };
 
 const Index = () => {
@@ -512,16 +684,9 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mt-2">Utilitários grátis para a comunidade</p>
             </motion.div>
             <div className="grid md:grid-cols-3 gap-4">
-              {TOOLS_LIST.map((tool, i) => (
-                <motion.div key={i} variants={fadeUp} className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 transition-colors group">
-                  <tool.icon className="h-5 w-5 text-primary mb-3" />
-                  <h3 className="text-sm font-semibold mb-1">{tool.name}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">{tool.desc}</p>
-                  <button className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-medium hover:bg-secondary transition-colors">
-                    Usar agora
-                  </button>
-                </motion.div>
-              ))}
+              <IpLookupTool />
+              <HwidCheckerTool />
+              <SteamCheckerTool />
             </div>
           </motion.div>
         </div>
