@@ -12,6 +12,7 @@ import { toast } from "sonner";
 const SECTIONS = [
   { id: "home", label: "Início" },
   { id: "store", label: "Loja" },
+  { id: "orders", label: "Pedidos" },
   { id: "giveaways", label: "Sorteios" },
   { id: "tools", label: "Ferramentas" },
   { id: "feedback", label: "Feedback" },
@@ -907,6 +908,26 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Pedidos do Cliente */}
+      <section id="orders" className="py-20 border-t border-border">
+        <div className="max-w-6xl mx-auto px-5">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
+            <motion.div variants={fadeUp} className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-xs text-primary font-medium mb-4">
+                <Package className="h-3 w-3" /> Meus Pedidos
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold">
+                Seus <span className="text-primary">Pedidos</span>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">Veja seus produtos comprados e conteúdos entregues</p>
+            </motion.div>
+            <motion.div variants={fadeUp} className="max-w-2xl mx-auto">
+              <OrdersSection />
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Feedback */}
       <section id="feedback" className="py-20 border-t border-border">
         <div className="max-w-6xl mx-auto px-5">
@@ -1300,6 +1321,123 @@ function FeedbackForm() {
         Enviar feedback
       </button>
     </form>
+  );
+}
+
+/* ---- Orders Section (Customer) ---- */
+function OrdersSection() {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<{ id: string; product_name: string; plan_name: string | null; price: number; status: string; delivered_content: string | null; payment_method: string; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  const fetchOrders = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("orders")
+      .select("id, product_name, plan_name, price, status, delivered_content, payment_method, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    setOrders(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [user?.id]);
+
+  if (!user) {
+    return (
+      <div className="bg-card border border-border rounded-xl p-8 text-center">
+        <Package className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
+        <p className="text-sm font-medium text-muted-foreground">Faça login para ver seus pedidos</p>
+        <Link to="/login" className="inline-flex items-center gap-2 mt-4 px-5 py-2 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all">
+          Entrar
+        </Link>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="h-6 w-6 text-primary mx-auto animate-spin" />
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="bg-card border border-border rounded-xl p-8 text-center">
+        <Package className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
+        <p className="text-sm font-medium text-muted-foreground">Nenhum pedido ainda</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">Seus produtos comprados aparecerão aqui.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {orders.map((order) => (
+        <div key={order.id} className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/20 transition-colors">
+          <button
+            onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+            className="w-full flex items-center gap-3 p-4 text-left"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{order.product_name}{order.plan_name ? ` — ${order.plan_name}` : ''}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {new Date(order.created_at).toLocaleDateString("pt-BR")} · {order.payment_method === "saldo" ? "Saldo" : "Pix"}
+              </p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-bold text-primary">R${order.price.toFixed(2).replace('.', ',')}</p>
+              <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
+                order.status === "completed" ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
+              }`}>
+                {order.status === "completed" ? "Entregue" : order.status}
+              </span>
+            </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedOrder === order.id ? "rotate-180" : ""}`} />
+          </button>
+          
+          <AnimatePresence>
+            {expandedOrder === order.id && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 pb-4 border-t border-border pt-3">
+                  {order.delivered_content ? (
+                    <div className="bg-secondary/30 rounded-lg p-3 space-y-1.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Seu produto:</p>
+                      <p className="text-xs font-mono text-primary break-all select-all bg-background/50 rounded-lg p-2.5 border border-border">
+                        {order.delivered_content}
+                      </p>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(order.delivered_content!); toast.success("Copiado!"); }}
+                        className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                      >
+                        <ExternalLink className="h-2.5 w-2.5" /> Copiar conteúdo
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Sem conteúdo disponível. Entre em contato com o suporte.</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+    </div>
   );
 }
 
