@@ -22,11 +22,7 @@ const STATS = [
   { value: "5★", label: "Avaliação média" },
 ];
 
-const TOOLS_LIST = [
-  { name: "HWID Checker", desc: "Verifique se seu hardware ID está banido.", icon: Wrench },
-  { name: "Steam Checker", desc: "Valide informações de contas Steam.", icon: ShieldCheck },
-  { name: "IP Lookup", desc: "Consulte dados geográficos de qualquer IP.", icon: Globe },
-];
+// Tools are now interactive components rendered inline
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
