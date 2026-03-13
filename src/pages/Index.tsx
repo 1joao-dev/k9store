@@ -1161,7 +1161,15 @@ const Index = () => {
                           {selectedProduct.plans.find(p => p.id === selectedPlans[selectedProduct.id])?.name}
                         </span>
                       )}
-                      <span className="flex items-center gap-1 text-primary">● Disponíveis</span>
+                      {(() => {
+                        const selPlanId = selectedPlans[selectedProduct.id];
+                        const count = selPlanId
+                          ? (stockCounts[`${selectedProduct.id}:${selPlanId}`] || 0)
+                          : selectedProduct.plans && selectedProduct.plans.length > 0
+                            ? (stockCounts[`total:${selectedProduct.id}`] || 0)
+                            : (stockCounts[selectedProduct.id] || 0);
+                        return <span className={`flex items-center gap-1 ${count > 0 ? "text-primary" : "text-destructive"}`}>● {count > 0 ? `${count} em estoque` : "Esgotado"}</span>;
+                      })()}
                       <span className="flex items-center gap-1 text-muted-foreground">
                         <Star className="h-3 w-3 fill-primary text-primary" />
                         <Star className="h-3 w-3 fill-primary text-primary" />
