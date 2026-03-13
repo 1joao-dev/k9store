@@ -468,6 +468,16 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
   );
 };
 
+const sendDiscordNotify = async (type: string, userId: string, data: Record<string, unknown>) => {
+  try {
+    await supabase.functions.invoke("discord-notify", {
+      body: { type, user_id: userId, data },
+    });
+  } catch (e) {
+    console.error("Discord notify error:", e);
+  }
+};
+
 const Index = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [products, setProducts] = useState<Product[]>([]);
@@ -477,7 +487,8 @@ const Index = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [stockCounts, setStockCounts] = useState<Record<string, number>>({});
-  const { user, isAdmin, signOut, profile, userRole } = useAuth();
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const { user, isAdmin, signOut, profile, userRole, refreshProfile } = useAuth();
 
   const ROLE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
     dono: { label: "DONO", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
