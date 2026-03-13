@@ -1,0 +1,124 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Wallet, X, Loader2, ExternalLink } from "lucide-react";
+import { useWallet } from "@/hooks/useWallet";
+
+const DEPOSIT_VALUES = [5, 10, 25, 50, 100];
+
+export function WalletButton() {
+  const { balance, loading, createDeposit } = useWallet();
+  const [showModal, setShowModal] = useState(false);
+  const [customAmount, setCustomAmount] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleDeposit = async (amount: number) => {
+    if (amount < 1) return;
+    setProcessing(true);
+    setError("");
+    try {
+      const result = await createDeposit(amount);
+      if (result.init_point) {
+        window.open(result.init_point, "_blank");
+        setShowModal(false);
+      }
+    } catch (e: any) {
+      setError(e.message || "Erro ao criar pagamento");
+    }
+    setProcessing(false);
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-all text-[11px] font-semibold"
+      >
+        <Wallet className="h-3.5 w-3.5" />
+        {loading ? "..." : `R$ ${Number(balance).toFixed(2)}`}
+      </button>
+
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5 text-primary" />
+                  <h3 className="text-base font-bold">Carteira</h3>
+                </div>
+                <button onClick={() => setShowModal(false)} className="p-1 text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="bg-secondary/50 border border-border rounded-xl p-4 text-center mb-5">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Saldo atual</p>
+                <p className="text-2xl font-black text-primary">
+                  R$ {Number(balance).toFixed(2)}
+                </p>
+              </div>
+
+              <p className="text-xs text-muted-foreground mb-3">Adicionar saldo via Mercado Pago:</p>
+
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {DEPOSIT_VALUES.map((val) => (
+                  <button
+                    key={val}
+                    disabled={processing}
+                    onClick={() => handleDeposit(val)}
+                    className="py-2.5 rounded-lg border border-border bg-secondary/30 text-xs font-semibold hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50"
+                  >
+                    R$ {val}
+                  </button>
+                ))}
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Outro"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    className="w-full h-full py-2.5 rounded-lg border border-border bg-secondary/30 text-xs font-semibold text-center placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40"
+                  />
+                </div>
+              </div>
+
+              {customAmount && Number(customAmount) >= 1 && (
+                <button
+                  disabled={processing}
+                  onClick={() => handleDeposit(Number(customAmount))}
+                  className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
+                >
+                  {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
+                  Depositar R$ {Number(customAmount).toFixed(2)}
+                </button>
+              )}
+
+              {processing && (
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Redirecionando para o Mercado Pago...
+                </div>
+              )}
+
+              {error && <p className="text-[11px] text-destructive text-center">{error}</p>}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
