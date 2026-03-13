@@ -443,7 +443,7 @@ const Index = () => {
     }]);
     setSelectedProduct(null);
     setShowCart(true);
-    toast({ title: `${product.name} adicionado ao carrinho!`, duration: 3000 });
+    toast.success(`${product.name} adicionado ao carrinho!`);
   };
 
   const removeFromCart = (index: number) => {
