@@ -287,6 +287,17 @@ export default function Admin() {
   // Ticket actions
   const updateTicketStatus = async (id: string, status: string) => {
     await supabase.from("tickets").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    // Discord notification for ticket status changes
+    const ticket = tickets.find(t => t.id === id);
+    if (ticket) {
+      const { data: tData } = await supabase.from("tickets").select("user_id").eq("id", id).single();
+      if (tData?.user_id) {
+        const notifType = status === "fechado" ? "ticket_closed" : status === "respondido" ? "ticket_responded" : "ticket_assumed";
+        supabase.functions.invoke("discord-notify", {
+          body: { type: notifType, user_id: tData.user_id, data: { subject: ticket.subject } },
+        }).catch(e => console.error("Discord notify error:", e));
+      }
+    }
     fetchAll();
   };
 
