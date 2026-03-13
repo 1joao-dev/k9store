@@ -608,6 +608,14 @@ const Index = () => {
     fetchData();
   }, []);
 
+  // Fetch resources when product is selected
+  useEffect(() => {
+    if (!selectedProduct) { setProductResources([]); return; }
+    setResourceTab("tutorial");
+    supabase.from("product_resources").select("*").eq("product_id", selectedProduct.id).order("sort_order")
+      .then(({ data }) => setProductResources((data as any[]) || []));
+  }, [selectedProduct]);
+
   const scrollTo = (id: string) => {
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
