@@ -1246,31 +1246,48 @@ const Index = () => {
                         ))}
                       </div>
 
-                      <div className="space-y-2">
-                        {productResources.filter(r => r.type === resourceTab).map(r => (
-                          <div key={r.id} className="bg-secondary/30 border border-border rounded-xl p-4 space-y-2">
-                            <h4 className="text-sm font-semibold flex items-center gap-2">
-                              {resourceTab === "tutorial" && <BookOpen className="h-3.5 w-3.5 text-primary" />}
-                              {resourceTab === "download" && <Download className="h-3.5 w-3.5 text-primary" />}
-                              {resourceTab === "fix" && <Bug className="h-3.5 w-3.5 text-primary" />}
-                              {r.title}
-                            </h4>
-                            {r.content && (
-                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{r.content}</p>
-                            )}
-                            {r.url && (
-                              <a
-                                href={r.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-                              >
-                                {resourceTab === "download" ? <Download className="h-3 w-3" /> : <ExternalLink className="h-3 w-3" />}
-                                {resourceTab === "download" ? "Baixar" : "Acessar"}
-                              </a>
-                            )}
-                          </div>
-                        ))}
+                      <div className="space-y-3">
+                        {productResources.filter(r => r.type === resourceTab).map(r => {
+                          // Extract YouTube video ID from URL
+                          const ytMatch = r.url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+                          const ytId = ytMatch?.[1];
+
+                          return (
+                            <div key={r.id} className="bg-secondary/30 border border-border rounded-xl p-4 space-y-3">
+                              <h4 className="text-sm font-semibold flex items-center gap-2">
+                                {resourceTab === "tutorial" && <BookOpen className="h-3.5 w-3.5 text-primary" />}
+                                {resourceTab === "download" && <Download className="h-3.5 w-3.5 text-primary" />}
+                                {resourceTab === "fix" && <Bug className="h-3.5 w-3.5 text-primary" />}
+                                {r.title}
+                              </h4>
+                              {ytId && (
+                                <div className="rounded-lg overflow-hidden border border-border aspect-video">
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${ytId}`}
+                                    title={r.title}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="w-full h-full"
+                                  />
+                                </div>
+                              )}
+                              {r.content && (
+                                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{r.content}</p>
+                              )}
+                              {r.url && !ytId && (
+                                <a
+                                  href={r.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                                >
+                                  {resourceTab === "download" ? <Download className="h-3 w-3" /> : <ExternalLink className="h-3 w-3" />}
+                                  {resourceTab === "download" ? "Baixar" : "Acessar"}
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
