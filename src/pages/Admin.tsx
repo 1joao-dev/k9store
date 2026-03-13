@@ -644,45 +644,24 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Respond Modal */}
+            {/* Chat Modal */}
             {respondingTicket && (
               <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-bold">Responder Ticket</h2>
-                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground">
+                <div className="bg-card border border-border rounded-xl w-full max-w-lg flex flex-col overflow-hidden" style={{ maxHeight: '80vh' }}>
+                  <div className="flex items-center justify-between p-4 border-b border-border">
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-bold truncate">{respondingTicket.subject}</h2>
+                      <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
+                    </div>
+                    <button onClick={() => setRespondingTicket(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="bg-secondary/50 rounded-lg p-3 space-y-1">
-                    <p className="text-[10px] text-muted-foreground">{respondingTicket.email} · {respondingTicket.category}</p>
-                    <p className="text-xs font-semibold">{respondingTicket.subject}</p>
-                    <p className="text-xs text-muted-foreground">{respondingTicket.description}</p>
+                  <div className="px-4 py-2 bg-secondary/30 border-b border-border">
+                    <p className="text-[10px] text-muted-foreground/60 mb-0.5">Descrição original</p>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{respondingTicket.description}</p>
                   </div>
-                  {respondingTicket.admin_response && (
-                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
-                      <p className="text-[10px] text-primary font-medium mb-1">Resposta anterior:</p>
-                      <p className="text-xs text-muted-foreground">{respondingTicket.admin_response}</p>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Sua resposta</label>
-                    <textarea
-                      value={ticketResponse}
-                      onChange={e => setTicketResponse(e.target.value)}
-                      placeholder="Escreva sua resposta..."
-                      rows={4}
-                      className={`${inputClass} resize-none`}
-                    />
-                  </div>
-                  <button
-                    onClick={respondToTicket}
-                    disabled={!ticketResponse.trim()}
-                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    Enviar resposta
-                  </button>
+                  <AdminTicketChat ticketId={respondingTicket.id} onStatusChange={(status) => { updateTicketStatus(respondingTicket.id, status); }} />
                 </div>
               </div>
             )}
