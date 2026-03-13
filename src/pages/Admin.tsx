@@ -39,11 +39,20 @@ type TicketItem = {
 
 export default function Admin() {
   const { user, isLoading: authLoading, isAdmin, isRoleLoading, signOut } = useAuth();
-  const [tab, setTab] = useState<"products" | "giveaways" | "tickets">("products");
+  const [tab, setTab] = useState<"products" | "giveaways" | "tickets" | "stock" | "orders">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [giveaways, setGiveaways] = useState<Giveaway[]>([]);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Stock management
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
+  const [stockPlanId, setStockPlanId] = useState<string | null>(null);
+  const [stockItems, setStockItems] = useState<any[]>([]);
+  const [stockPlans, setStockPlans] = useState<any[]>([]);
+  const [newStockContent, setNewStockContent] = useState("");
+  const [bulkStockContent, setBulkStockContent] = useState("");
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
