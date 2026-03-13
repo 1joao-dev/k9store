@@ -442,8 +442,8 @@ const Index = () => {
       image_url: product.image_url,
     }]);
     setSelectedProduct(null);
-    setShowCart(true);
     toast.success(`${product.name}${plan ? ` — ${plan.name}` : ''} adicionado ao carrinho!`, { position: "top-center" });
+    setTimeout(() => setShowCart(true), 1200);
   };
 
   const removeFromCart = (index: number) => {
