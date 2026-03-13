@@ -8,8 +8,7 @@ const corsHeaders = {
 
 const DISCORD_API = "https://discord.com/api/v10";
 
-async function sendDM(botToken: string, userId: string, embed: Record<string, unknown>) {
-  // Create DM channel
+async function getDMChannel(botToken: string, userId: string) {
   const channelRes = await fetch(`${DISCORD_API}/users/@me/channels`, {
     method: "POST",
     headers: {
@@ -22,25 +21,51 @@ async function sendDM(botToken: string, userId: string, embed: Record<string, un
   if (!channelRes.ok) {
     const err = await channelRes.text();
     console.error(`Failed to create DM channel for ${userId}:`, err);
-    return false;
+    return null;
   }
 
-  const channel = await channelRes.json();
+  return await channelRes.json();
+}
 
-  // Send message
-  const msgRes = await fetch(`${DISCORD_API}/channels/${channel.id}/messages`, {
+async function sendChannelMessage(botToken: string, channelId: string, payload: Record<string, unknown>) {
+  const msgRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
     method: "POST",
     headers: {
       Authorization: `Bot ${botToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ embeds: [embed] }),
+    body: JSON.stringify(payload),
   });
 
   if (!msgRes.ok) {
     const err = await msgRes.text();
-    console.error(`Failed to send DM to ${userId}:`, err);
+    console.error(`Failed to send message:`, err);
     return false;
+  }
+  await msgRes.text();
+  return true;
+}
+
+async function sendDM(botToken: string, userId: string, embed: Record<string, unknown>, extraContent?: string) {
+  const channel = await getDMChannel(botToken, userId);
+  if (!channel) return false;
+
+  // Send the embed first
+  const sent = await sendChannelMessage(botToken, channel.id, { embeds: [embed] });
+  if (!sent) return false;
+
+  // If there's extra content (like transcript), send as a plain text message
+  if (extraContent) {
+    // Discord message limit is 2000 chars, split into chunks
+    const chunks: string[] = [];
+    let remaining = extraContent;
+    while (remaining.length > 0) {
+      chunks.push(remaining.slice(0, 1990));
+      remaining = remaining.slice(1990);
+    }
+    for (const chunk of chunks) {
+      await sendChannelMessage(botToken, channel.id, { content: `\`\`\`\n${chunk}\n\`\`\`` });
+    }
   }
 
   return true;
