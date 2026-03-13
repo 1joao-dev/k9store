@@ -31,13 +31,13 @@ export function useWallet() {
     fetchBalance();
   }, [fetchBalance]);
 
-  const createDeposit = async (amount: number) => {
+  const createDeposit = async (amount: number, method: "pix" | "redirect" = "redirect") => {
     const { data, error } = await supabase.functions.invoke("create-mp-payment", {
-      body: { amount },
+      body: { amount, method },
     });
 
     if (error) throw new Error("Erro ao criar pagamento");
-    return data as { init_point: string; txn_id: string };
+    return data as { init_point?: string; txn_id: string; qr_code?: string; qr_code_base64?: string; method?: string };
   };
 
   return { balance, loading, fetchBalance, createDeposit };
