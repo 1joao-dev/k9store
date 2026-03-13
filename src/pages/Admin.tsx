@@ -779,7 +779,7 @@ export default function Admin() {
                           >
                             <MessageCircle className="h-3.5 w-3.5" />
                           </button>
-                          {t.status === "aberto" && (
+                          {t.status !== "fechado" && (
                             <button
                               onClick={() => updateTicketStatus(t.id, "fechado")}
                               className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary"
