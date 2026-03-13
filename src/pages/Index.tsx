@@ -433,17 +433,20 @@ const Index = () => {
   const addToCart = (product: Product, planId: string | null) => {
     const plan = planId ? product.plans?.find(p => p.id === planId) : null;
     const price = plan ? plan.price : product.price;
+    const name = product.name;
     setCart(prev => [...prev, {
       productId: product.id,
-      productName: product.name,
+      productName: name,
       planId,
       planName: plan?.name || null,
       price,
       image_url: product.image_url,
     }]);
     setSelectedProduct(null);
-    toast.success(`${product.name}${plan ? ` — ${plan.name}` : ''} adicionado ao carrinho!`, { position: "top-center" });
-    setTimeout(() => setShowCart(true), 1200);
+    setTimeout(() => {
+      toast.success(`${name}${plan ? ` — ${plan.name}` : ''} adicionado ao carrinho!`, { position: "top-center" });
+    }, 150);
+    setTimeout(() => setShowCart(true), 1500);
   };
 
   const removeFromCart = (index: number) => {
