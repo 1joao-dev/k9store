@@ -968,7 +968,9 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchMessages = async () => {
     const { data } = await supabase
@@ -989,12 +991,20 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "ticket_messages", filter: `ticket_id=eq.${ticketId}` },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as any]);
+          setMessages((prev) => {
+            if (prev.some(m => m.id === (payload.new as any).id)) return prev;
+            return [...prev, payload.new as any];
+          });
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    const pollInterval = setInterval(fetchMessages, 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+    };
   }, [ticketId]);
 
   useEffect(() => {
@@ -1012,10 +1022,31 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
       sender_type: "admin",
       message: newMsg.trim(),
     });
-    // Also update ticket status to respondido
     onStatusChange("respondido");
     setNewMsg("");
     setSending(false);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${ticketId}/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage.from("ticket-attachments").upload(path, file);
+    if (uploadErr) { setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("ticket-attachments").getPublicUrl(path);
+    await supabase.from("ticket_messages").insert({
+      ticket_id: ticketId,
+      sender_id: user.id,
+      sender_type: "admin",
+      message: `[image]${urlData.publicUrl}[/image]`,
+    });
+    onStatusChange("respondido");
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1023,6 +1054,14 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const renderMessage = (text: string) => {
+    const imgMatch = text.match(/^\[image\](.*)\[\/image\]$/);
+    if (imgMatch) {
+      return <img src={imgMatch[1]} alt="Anexo" className="rounded-lg max-w-[240px] max-h-[200px] object-cover cursor-pointer" onClick={() => window.open(imgMatch[1], "_blank")} />;
+    }
+    return <p className="whitespace-pre-wrap break-words">{text}</p>;
   };
 
   return (
@@ -1050,7 +1089,7 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
                   {!isAdmin && (
                     <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">👤 Cliente</p>
                   )}
-                  <p className="whitespace-pre-wrap break-words">{m.message}</p>
+                  {renderMessage(m.message)}
                   <p className={`text-[9px] mt-1 ${isAdmin ? "text-primary-foreground/60" : "text-muted-foreground/50"}`}>
                     {new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -1062,7 +1101,16 @@ function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onSta
       </div>
 
       <div className="border-t border-border px-4 py-3">
+        <input type="file" ref={fileRef} accept="image/*" className="hidden" onChange={handleImageUpload} />
         <div className="flex items-end gap-2">
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="p-2.5 rounded-xl bg-secondary border border-border text-muted-foreground hover:text-foreground transition-all disabled:opacity-40"
+            title="Anexar imagem"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          </button>
           <textarea
             value={newMsg}
             onChange={(e) => setNewMsg(e.target.value.slice(0, 2000))}
