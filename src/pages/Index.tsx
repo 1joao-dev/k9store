@@ -967,15 +967,7 @@ const Index = () => {
               </div>
 
               {cart.length > 0 && (
-                <div className="p-5 border-t border-border space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">Total</span>
-                    <span className="text-lg font-bold text-primary">R${cartTotal.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                  <button className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">
-                    Finalizar compra
-                  </button>
-                </div>
+                <CheckoutSection cartTotal={cartTotal} cart={cart} setCart={setCart} setShowCart={setShowCart} />
               )}
             </motion.div>
           </motion.div>

@@ -110,16 +110,6 @@ export function WalletButton() {
                 )}
               </div>
 
-              {customAmount && Number(customAmount) >= 1 && (
-                <button
-                  disabled={processing}
-                  onClick={() => handleDeposit(Number(customAmount))}
-                  className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
-                >
-                  {processing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
-                  Depositar R$ {Number(customAmount).toFixed(2)}
-                </button>
-              )}
 
               {processing && (
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
