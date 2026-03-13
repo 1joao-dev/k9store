@@ -443,7 +443,7 @@ const Index = () => {
     }]);
     setSelectedProduct(null);
     setShowCart(true);
-    toast.success(`${product.name} adicionado ao carrinho!`);
+    toast.success(`${product.name}${plan ? ` — ${plan.name}` : ''} adicionado ao carrinho!`, { position: "top-center" });
   };
 
   const removeFromCart = (index: number) => {
