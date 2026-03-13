@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, Zap, Gamepad2, Users, ShoppingCart, Globe, Gift, Wrench, ChevronDown, Star, Clock, Package, MessageCircle, Send, Ticket, AlertCircle, LogOut, Settings, X, Plus, Minus, Image, Eye, RefreshCw, Search, Loader2, MapPin, Wifi, Server, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { WalletButton } from "@/components/WalletButton";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
