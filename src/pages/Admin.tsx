@@ -88,15 +88,59 @@ export default function Admin() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [p, g, t] = await Promise.all([
+    const [p, g, t, o] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("giveaways").select("*").order("created_at", { ascending: false }),
       supabase.from("tickets").select("*").order("created_at", { ascending: false }),
+      supabase.from("orders").select("*").order("created_at", { ascending: false }),
     ]);
     if (p.data) setProducts(p.data as Product[]);
     if (g.data) setGiveaways(g.data as Giveaway[]);
     if (t.data) setTickets(t.data as TicketItem[]);
+    if (o.data) setOrders(o.data);
     setLoading(false);
+  };
+
+  const openStockManager = async (product: Product) => {
+    setStockProduct(product);
+    setStockPlanId(null);
+    const { data: plans } = await supabase.from("product_plans").select("*").eq("product_id", product.id).order("sort_order");
+    setStockPlans(plans || []);
+    const { data: items } = await supabase.from("product_stock").select("*").eq("product_id", product.id).order("created_at", { ascending: false });
+    setStockItems(items || []);
+    setNewStockContent("");
+    setBulkStockContent("");
+  };
+
+  const addStockItem = async () => {
+    if (!stockProduct || !newStockContent.trim()) return;
+    await supabase.from("product_stock").insert({
+      product_id: stockProduct.id,
+      plan_id: stockPlanId || null,
+      content: newStockContent.trim(),
+    });
+    setNewStockContent("");
+    openStockManager(stockProduct);
+  };
+
+  const addBulkStock = async () => {
+    if (!stockProduct || !bulkStockContent.trim()) return;
+    const lines = bulkStockContent.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+    const items = lines.map(content => ({
+      product_id: stockProduct.id,
+      plan_id: stockPlanId || null,
+      content,
+    }));
+    await supabase.from("product_stock").insert(items);
+    setBulkStockContent("");
+    openStockManager(stockProduct);
+  };
+
+  const deleteStockItem = async (id: string) => {
+    if (!stockProduct) return;
+    await supabase.from("product_stock").delete().eq("id", id);
+    openStockManager(stockProduct);
   };
 
   useEffect(() => { fetchAll(); }, []);
