@@ -748,3 +748,126 @@ export default function Admin() {
     </div>
   );
 }
+
+/* ---- Admin Ticket Chat ---- */
+function AdminTicketChat({ ticketId, onStatusChange }: { ticketId: string; onStatusChange: (status: string) => void }) {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<{ id: string; sender_type: string; message: string; created_at: string; sender_id: string | null }[]>([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchMessages = async () => {
+    const { data } = await supabase
+      .from("ticket_messages")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchMessages();
+
+    const channel = supabase
+      .channel(`admin-ticket-${ticketId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ticket_messages", filter: `ticket_id=eq.${ticketId}` },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as any]);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [ticketId]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!newMsg.trim() || !user || sending) return;
+    setSending(true);
+    await supabase.from("ticket_messages").insert({
+      ticket_id: ticketId,
+      sender_id: user.id,
+      sender_type: "admin",
+      message: newMsg.trim(),
+    });
+    // Also update ticket status to respondido
+    onStatusChange("respondido");
+    setNewMsg("");
+    setSending(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="flex flex-col" style={{ height: '50vh' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
+        {loading ? (
+          <div className="text-center py-8">
+            <Clock className="h-4 w-4 text-muted-foreground/30 mx-auto animate-spin" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="h-6 w-6 text-muted-foreground/15 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground/60">Nenhuma mensagem. Envie uma resposta!</p>
+          </div>
+        ) : (
+          messages.map((m) => {
+            const isAdmin = m.sender_type === "admin";
+            return (
+              <div key={m.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
+                  isAdmin
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-secondary border border-border text-foreground rounded-bl-md"
+                }`}>
+                  {!isAdmin && (
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">👤 Cliente</p>
+                  )}
+                  <p className="whitespace-pre-wrap break-words">{m.message}</p>
+                  <p className={`text-[9px] mt-1 ${isAdmin ? "text-primary-foreground/60" : "text-muted-foreground/50"}`}>
+                    {new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div className="border-t border-border px-4 py-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value.slice(0, 2000))}
+            onKeyDown={handleKeyDown}
+            placeholder="Responder ao cliente..."
+            rows={1}
+            className="flex-1 px-3 py-2 rounded-xl bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors resize-none [color-scheme:dark]"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMsg.trim() || sending}
+            className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all disabled:opacity-40"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
