@@ -7,6 +7,8 @@ type Profile = {
   avatar_url: string | null;
 };
 
+type UserRole = "dono" | "admin" | "suporte" | "moderator" | "cliente_vip" | "user" | null;
+
 type AuthCtx = {
   user: User | null;
   session: Session | null;
@@ -14,6 +16,7 @@ type AuthCtx = {
   isLoading: boolean;
   isAdmin: boolean;
   isRoleLoading: boolean;
+  userRole: UserRole;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -25,6 +28,7 @@ const AuthContext = createContext<AuthCtx>({
   isLoading: true,
   isAdmin: false,
   isRoleLoading: true,
+  userRole: null,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -38,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRoleLoading, setIsRoleLoading] = useState(true);
+  const [userRole, setUserRole] = useState<UserRole>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -70,22 +75,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       setIsRoleLoading(false);
       setProfile(null);
+      setUserRole(null);
       return;
     }
 
     setIsRoleLoading(true);
     
-    // Fetch role and profile in parallel
     Promise.all([
       supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
         .maybeSingle(),
       fetchProfile(user.id),
     ]).then(([roleResult]) => {
-      setIsAdmin(!!roleResult.data);
+      const role = roleResult.data?.role as UserRole ?? null;
+      setUserRole(role);
+      setIsAdmin(role === "admin" || role === "dono");
       setIsRoleLoading(false);
     });
   }, [user?.id]);
@@ -99,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, isRoleLoading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isLoading, isAdmin, isRoleLoading, userRole, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
