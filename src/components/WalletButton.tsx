@@ -64,7 +64,7 @@ export function WalletButton() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
             onClick={() => setShowModal(false)}
           >
             <motion.div
@@ -72,7 +72,7 @@ export function WalletButton() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={`bg-card border border-border rounded-2xl w-full ${pixData ? "max-w-md p-5" : "max-w-sm p-6 max-h-[90vh] overflow-y-auto"}`}
+              className={`bg-card border border-border rounded-2xl w-full my-auto max-h-[calc(100dvh-1.5rem)] overflow-y-auto ${pixData ? "max-w-md p-5" : "max-w-sm p-6"}`}
             >
               {pixData ? (
                 <div className="space-y-4 text-center">
@@ -94,7 +94,7 @@ export function WalletButton() {
                     <img
                       src={`data:image/png;base64,${pixData.qr_code_base64}`}
                       alt="QR Code Pix"
-                      className="w-[min(78vw,320px)] h-[min(78vw,320px)] max-w-full max-h-[60vh] object-contain rounded-lg"
+                      className="w-full max-w-[320px] aspect-square h-auto object-contain rounded-lg"
                     />
                   </div>
 
