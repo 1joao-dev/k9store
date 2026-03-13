@@ -1223,7 +1223,57 @@ const Index = () => {
                         5.0
                       </span>
                     </div>
-                  </div>
+                   </div>
+
+                  {/* Resources Tabs */}
+                  {productResources.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-border">
+                      <div className="flex gap-1 bg-secondary/50 rounded-full p-1">
+                        {([
+                          { key: "tutorial" as const, icon: <BookOpen className="h-3 w-3" />, label: "Tutoriais" },
+                          { key: "download" as const, icon: <Download className="h-3 w-3" />, label: "Downloads" },
+                          { key: "fix" as const, icon: <Bug className="h-3 w-3" />, label: "Fix Erros" },
+                        ]).filter(t => productResources.some(r => r.type === t.key)).map(t => (
+                          <button
+                            key={t.key}
+                            onClick={() => setResourceTab(t.key)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                              resourceTab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {t.icon} {t.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="space-y-2">
+                        {productResources.filter(r => r.type === resourceTab).map(r => (
+                          <div key={r.id} className="bg-secondary/30 border border-border rounded-xl p-4 space-y-2">
+                            <h4 className="text-sm font-semibold flex items-center gap-2">
+                              {resourceTab === "tutorial" && <BookOpen className="h-3.5 w-3.5 text-primary" />}
+                              {resourceTab === "download" && <Download className="h-3.5 w-3.5 text-primary" />}
+                              {resourceTab === "fix" && <Bug className="h-3.5 w-3.5 text-primary" />}
+                              {r.title}
+                            </h4>
+                            {r.content && (
+                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{r.content}</p>
+                            )}
+                            {r.url && (
+                              <a
+                                href={r.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                              >
+                                {resourceTab === "download" ? <Download className="h-3 w-3" /> : <ExternalLink className="h-3 w-3" />}
+                                {resourceTab === "download" ? "Baixar" : "Acessar"}
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: Image */}
