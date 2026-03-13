@@ -794,7 +794,16 @@ const Index = () => {
                             <p className="text-[10px] text-muted-foreground -mt-0.5">A partir de</p>
                           )}
                         </div>
-                        <span className="text-[10px] text-primary font-medium flex items-center gap-0.5">● Disponíveis</span>
+                        {(() => {
+                          const totalStock = product.plans && product.plans.length > 0
+                            ? (stockCounts[`total:${product.id}`] || 0)
+                            : (stockCounts[product.id] || 0);
+                          return (
+                            <span className={`text-[10px] font-medium flex items-center gap-0.5 ${totalStock > 0 ? "text-primary" : "text-destructive"}`}>
+                              ● {totalStock > 0 ? `${totalStock} em estoque` : "Esgotado"}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {/* Sales */}
