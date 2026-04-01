@@ -468,6 +468,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      secure_purchase: {
+        Args: {
+          p_payment_method?: string
+          p_plan_id: string
+          p_product_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
