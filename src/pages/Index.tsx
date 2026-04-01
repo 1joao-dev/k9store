@@ -308,14 +308,9 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
     setProcessing(true);
     setError("");
     try {
-      const { error: rpcError } = await supabase.rpc("add_wallet_balance", {
-        p_user_id: user!.id,
-        p_amount: -cartTotal,
-        p_payment_id: `purchase-${Date.now()}`,
-      });
-      if (rpcError) throw rpcError;
-      await fetchBalance();
+      // secure_purchase handles balance deduction server-side
       const results = await createOrders("saldo");
+      await fetchBalance();
       setOrderResult(results);
       setCart([]);
     } catch (e: any) {
