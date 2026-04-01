@@ -1052,8 +1052,8 @@ const Index = () => {
               </h2>
               <p className="text-sm text-muted-foreground mt-2">Abra um ticket ou acompanhe seus chamados</p>
             </motion.div>
-            <motion.div variants={fadeUp} className="max-w-2xl mx-auto">
-              <TicketSection />
+            <motion.div variants={fadeUp}>
+              <TicketSystem />
             </motion.div>
           </motion.div>
         </div>
