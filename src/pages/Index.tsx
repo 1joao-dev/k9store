@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
 import GreenParticles from "@/components/GreenParticles";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import TicketSystem from "@/components/TicketSystem";
 import { toast } from "sonner";
 
 
