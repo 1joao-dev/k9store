@@ -272,29 +272,29 @@ const CheckoutSection = ({ cartTotal, cart, setCart, setShowCart }: { cartTotal:
   const createOrders = async (paymentMethod: string) => {
     const results: { productName: string; planName?: string; content: string | null }[] = [];
     for (const item of cart) {
-      // Claim stock
-      const { data: stockContent } = await supabase.rpc("claim_stock_item", {
+      // Use secure server-side function that validates real prices from DB
+      const { data, error: rpcErr } = await supabase.rpc("secure_purchase", {
+        p_user_id: user!.id,
         p_product_id: item.productId,
         p_plan_id: item.planId,
+        p_payment_method: paymentMethod,
       });
-      // Create order
-      await supabase.from("orders").insert({
-        user_id: user!.id,
-        product_id: item.productId,
-        plan_id: item.planId,
-        product_name: item.productName,
-        plan_name: item.planName,
-        price: item.price,
-        status: "completed",
-        delivered_content: stockContent || null,
-        payment_method: paymentMethod,
+      
+      const result = data as any;
+      if (rpcErr || !result?.success) {
+        throw new Error(result?.error || rpcErr?.message || "Erro ao processar compra");
+      }
+      
+      results.push({ 
+        productName: result.product_name, 
+        planName: result.plan_name || undefined, 
+        content: result.content 
       });
-      results.push({ productName: item.productName, planName: item.planName || undefined, content: stockContent });
       // Discord notification for product delivery
       sendDiscordNotify("product_delivered", user!.id, {
-        product_name: item.productName,
-        plan_name: item.planName,
-        price: item.price,
+        product_name: result.product_name,
+        plan_name: result.plan_name,
+        price: result.price,
       });
     }
     return results;
