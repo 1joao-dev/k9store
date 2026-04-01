@@ -648,6 +648,7 @@ const Index = () => {
             ))}
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {user && <WalletButton />}
             <button onClick={() => setShowCart(true)} className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
               <ShoppingCart className="h-4 w-4" />
