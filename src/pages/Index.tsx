@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/k9-logo.png";
 import GreenParticles from "@/components/GreenParticles";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 
 
