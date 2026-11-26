@@ -1,73 +1,85 @@
-# Welcome to your Lovable project
+# K9 Store
 
-## Project info
+Plataforma de comércio digital desenvolvida com React e TypeScript. O projeto reúne catálogo de produtos e planos, experiência de compra, carteira digital, área do cliente, suporte e ferramentas auxiliares em uma única aplicação.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Funcionalidades
 
-## How can I edit this code?
+- **Loja e catálogo:** exibição de produtos, planos, detalhes e carrinho.
+- **Conta do cliente:** autenticação, sessão persistente e recuperação de senha.
+- **Carteira digital:** consulta de saldo e depósitos por Pix ou checkout do Mercado Pago.
+- **Pagamentos:** criação de cobranças e confirmação por webhook, com atualização das transações e do saldo.
+- **Painel administrativo:** gerenciamento da operação, produtos, sorteios e atendimento.
+- **Suporte:** abertura e acompanhamento de tickets, respostas administrativas e notificações.
+- **Integração com Discord:** mensagens sobre pagamentos, tickets e entregas.
+- **Ferramentas:** consulta de IP, consulta de perfis Steam e verificador de HWID demonstrativo.
 
-There are several ways of editing your application.
+## Tecnologias
 
-**Use Lovable**
+- React 18, TypeScript e Vite
+- Tailwind CSS, shadcn/ui e Radix UI
+- React Router, TanStack Query e Framer Motion
+- Supabase Auth, banco de dados e Edge Functions
+- Mercado Pago para pagamentos
+- Discord API para notificações
+- Deno para as funções serverless
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Estrutura do projeto
 
-Changes made via Lovable will be committed automatically to this repo.
+```text
+src/
+  components/       Componentes da interface e componentes reutilizáveis
+  hooks/            Hooks de autenticação e carteira
+  integrations/     Cliente e tipos do Supabase
+  pages/            Loja, login, administração e recuperação de senha
+  assets/           Imagens e identidade visual
+supabase/
+  functions/        Pagamentos, webhook, Discord e ferramentas
+  migrations/       Migrações do banco de dados
+```
 
-**Use your preferred IDE**
+## Executar localmente
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Requisitos: Node.js e npm.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Configure no arquivo `.env` as variáveis utilizadas pelo frontend:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```env
+VITE_SUPABASE_URL=https://SEU_PROJETO.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=SUA_CHAVE_PUBLICA
+```
 
-**Use GitHub Codespaces**
+## Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Gera a versão de produção em `dist/` |
+| `npm run preview` | Executa uma prévia da build |
+| `npm run lint` | Executa o ESLint |
+| `npm test` | Executa os testes |
 
-## What technologies are used for this project?
+## Configuração das Edge Functions
 
-This project is built with:
+As funções do Supabase utilizam variáveis de ambiente configuradas no projeto Supabase. Conforme a função, são necessárias:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `MERCADOPAGO_ACCESS_TOKEN`
+- `DISCORD_BOT_TOKEN`
+- `SITE_URL` (opcional, como fallback para a URL de retorno do checkout)
 
-## How can I deploy this project?
+Nunca coloque tokens privados ou a chave `SUPABASE_SERVICE_ROLE_KEY` no frontend.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Deploy
 
-## Can I connect a custom domain to my Lovable project?
+Gere a aplicação com `npm run build` e publique o conteúdo da pasta `dist/` em uma hospedagem estática compatível com aplicações SPA. Configure as variáveis do frontend na plataforma de hospedagem e mantenha as Edge Functions e secrets no projeto Supabase.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Projeto K9 Store.

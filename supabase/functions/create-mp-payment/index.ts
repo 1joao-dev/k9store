@@ -130,6 +130,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Use the current website origin for Mercado Pago return URLs.
+    // SITE_URL is an optional fallback for non-browser requests.
+    const resolveReturnUrl = (value: string | null) => {
+      if (!value) return null;
+      try {
+        const parsed = new URL(value);
+        const isLocalhost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+        if (parsed.protocol === "https:" || (parsed.protocol === "http:" && isLocalhost)) {
+          return parsed.origin;
+        }
+      } catch {
+        // Ignore invalid return URLs and let checkout complete without a redirect target.
+      }
+      return null;
+    };
+    const returnUrl =
+      resolveReturnUrl(req.headers.get("origin")) ??
+      resolveReturnUrl(Deno.env.get("SITE_URL") ?? null);
+
     // Default: create checkout preference (redirect)
     const preference = {
       items: [
@@ -142,12 +161,16 @@ Deno.serve(async (req) => {
       ],
       external_reference: JSON.stringify({ txn_id: txn.id, user_id: user.id }),
       notification_url: webhookUrl,
-      back_urls: {
-        success: `https://k9store.lovable.app`,
-        failure: `https://k9store.lovable.app`,
-        pending: `https://k9store.lovable.app`,
-      },
-      auto_return: "approved",
+      ...(returnUrl
+        ? {
+            back_urls: {
+              success: returnUrl,
+              failure: returnUrl,
+              pending: returnUrl,
+            },
+            auto_return: "approved",
+          }
+        : {}),
     };
 
     const mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
